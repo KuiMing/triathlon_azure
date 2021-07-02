@@ -100,11 +100,25 @@ def main():
     )
 
     # ouput log
-    run.log_list("train_loss", history_callback.history["loss"])
-    run.log_list("train_accuracy", history_callback.history["accuracy"])
-    run.log_list("val_loss", history_callback.history["val_loss"])
-    run.log_list("val_accuracy", history_callback.history["val_accuracy"])
+    metrics = history_callback.history
+    run.log_list("train_loss", metrics["loss"])
+    run.log_list("train_accuracy", metrics["accuracy"])
+    run.log_list("val_loss", metrics["val_loss"])
+    run.log_list("val_accuracy", metrics["val_accuracy"])
 
+    run.register_model(
+        model_name=args.experiment_name,
+        tags={"data": "mnist", "model": "classification"},
+        model_path="outputs/keras_lenet.h5",
+        model_framework="keras",
+        model_framework_version="2.3.1",
+        properties={
+            "train_loss": metrics["train_loss"][-1],
+            "train_accuracy": metrics["train_accuracy"][-1],
+            "val_loss": metrics["val_loss"][-1],
+            "val_accuracy": metrics["val_accuracy"][-1],
+        },
+    )
     print("Finished Training")
     model.save("outputs/keras_lenet.h5")
     print("Saved Model")
