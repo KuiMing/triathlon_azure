@@ -54,7 +54,7 @@ def main():
     environment = Environment.from_pip_requirements(
         name=args.file.replace(".py", ""), file_path="requirements.txt"
     )
-
+    environment.register(work_space)
     config.run_config.environment = environment
 
     # Run the experiment for training
