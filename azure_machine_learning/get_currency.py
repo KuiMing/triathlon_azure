@@ -48,7 +48,7 @@ def main():
         currency_data = usd_twd.Close.values.reshape(-1, 1)
         scaler = MinMaxScaler(feature_range=(0, 1))
         currency_data = scaler.fit_transform(currency_data)
-        with open("currency/usd_twd.pickle", "wb") as f_h:
+        with open("currency/scaler.pickle", "wb") as f_h:
             pickle.dump(scaler, f_h)
         f_h.close()
         currency_data = usd_twd[
