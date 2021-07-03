@@ -107,7 +107,7 @@ def main():
     run.log_list("val_accuracy", metrics["val_accuracy"])
 
     run.register_model(
-        model_name=args.experiment_name,
+        model_name=args.data_folder.split("/")[1],
         tags={"data": "mnist", "model": "classification"},
         model_path="outputs/keras_lenet.h5",
         model_framework="keras",
@@ -121,6 +121,9 @@ def main():
     )
     print("Finished Training")
     model.save("outputs/keras_lenet.h5")
+    with open("outputs/scaler.pickle", "wb") as f_h:
+        pickle.dump(scaler, f_h)
+    f_h.close()
     print("Saved Model")
 
 
