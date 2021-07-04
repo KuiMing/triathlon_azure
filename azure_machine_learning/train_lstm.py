@@ -105,7 +105,12 @@ def main():
     # Register Model
     run.register_model(
         model_name=args.data_folder.split("/")[1],
-        tags={"data": "USD/TWD", "model": "LSTM"},
+        tags={
+            "data": "USD/TWD from {0} to {1}".format(
+                usd_twd.Date.values[0], usd_twd.Date.values[-1]
+            ),
+            "model": "LSTM",
+        },
         model_path="outputs/keras_lstm.h5",
         model_framework="keras",
         model_framework_version=keras.__version__,
