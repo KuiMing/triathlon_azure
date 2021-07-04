@@ -7,13 +7,7 @@ import pandas as pd
 from keras.models import Sequential
 from keras.layers import Dense, LSTM, Dropout
 from keras.preprocessing.sequence import TimeseriesGenerator
-from keras.callbacks import TensorBoard
-
-
-# usd_twd = investpy.get_currency_cross_historical_data(
-#     "USD/TWD", from_date="01/01/1900", to_date="31/12/2020"
-# )
-# usd_twd.reset_index(inplace=True)
+from keras.callbacks import TensorBoard, EarlyStopping
 
 
 def data_generator(data, data_len=240):
@@ -26,15 +20,11 @@ def data_generator(data, data_len=240):
     x_all = np.array(x_all)
     y_all = data[range(data_len, len(x_all) + data_len)]
     rate = 0.4
-    x_test = x_all[-int(len(x_all) * rate) :]
-    y_test = y_all[-int(y_all.shape[0] * rate) :]
-    x_train = x_all[: int(len(x_all) * (1 - rate) ** 2)]
-    y_train = y_all[: int(y_all.shape[0] * (1 - rate) ** 2)]
-    x_val = x_all[int(len(x_all) * (1 - rate) ** 2) : int(len(x_all) * (1 - rate))]
-    y_val = y_all[
-        int(y_all.shape[0] * (1 - rate) ** 2) : int(y_all.shape[0] * (1 - rate))
-    ]
-    return x_train, y_train, x_val, y_val, x_test, y_test
+    x_train = x_all[: int(len(x_all) * (1 - rate))]
+    y_train = y_all[: int(y_all.shape[0] * (1 - rate))]
+    x_val = x_all[int(len(x_all) * (1 - rate)) :]
+    y_val = y_all[int(y_all.shape[0] * (1 - rate)) :]
+    return x_train, y_train, x_val, y_val
 
 
 def parse_args():
@@ -42,7 +32,8 @@ def parse_args():
     Parse arguments
     """
     parser = argparse.ArgumentParser()
-    parser.add_argument("--data_folder", type=str, help="Path to the training data")
+    parser.add_argument("--target_folder", type=str, help="Path to the training data")
+    parser.add_argument("--tensorboard", type=bool, default=False)
     parser.add_argument(
         "--log_folder", type=str, help="Path to the log", default="./logs"
     )
@@ -62,7 +53,7 @@ def main():
     run = Run.get_context()
 
     # Load mnist data
-    usd_twd = pd.read_csv(os.path.join(args.data_folder, "usd_twd.csv"))
+    usd_twd = pd.read_csv(os.path.join(args.target_folder, "usd_twd.csv"))
     data = usd_twd.Close.values.reshape(-1, 1)
     with open(os.path.join(args.data_folder, "scaler.pickle"), "rb") as f_h:
         scaler = pickle.load(f_h)
@@ -70,25 +61,26 @@ def main():
     data = scaler.fit_transform(data)
     data = data[usd_twd[usd_twd.Date >= "2010-01-01"].index]
     data_len = 240
-    x_train, y_train, x_val, y_val, _, _ = data_generator(data, data_len)
+    x_train, y_train, x_val, y_val = data_generator(data, data_len)
     model = Sequential()
     model.add(LSTM(16, input_shape=(data_len, 1)))
     model.add(Dropout(0.1))
     model.add(Dense(1))
     model.compile(loss="mse", optimizer="adam")
-
-    # Tensorboard
-    tb_callback = TensorBoard(
-        log_dir=args.log_folder,
-        histogram_freq=0,
-        write_graph=True,
-        write_images=True,
-        embeddings_freq=0,
-        embeddings_layer_names=None,
-        embeddings_metadata=None,
-    )
-
-    # train the network
+    if args.tensorboard:
+        # Tensorboard
+        callback = TensorBoard(
+            log_dir=args.log_folder,
+            histogram_freq=0,
+            write_graph=True,
+            write_images=True,
+            embeddings_freq=0,
+            embeddings_layer_names=None,
+            embeddings_metadata=None,
+        )
+    else:
+        callback = EarlyStopping(monitor="val_loss", mode="min", baseline=5e-5)
+        # train the network
     history_callback = model.fit(
         x_train,
         y_train,
@@ -96,7 +88,7 @@ def main():
         batch_size=240,
         verbose=1,
         validation_data=[x_val, y_val],
-        callbacks=[tb_callback],
+        callbacks=[callback],
     )
 
     # ouput log
