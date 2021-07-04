@@ -4,7 +4,8 @@ Run the experiment for training
 import os
 import argparse
 from azureml.core import ScriptRunConfig, Dataset, Workspace, Experiment, Environment
-from azureml.core.model import Model
+
+# from azureml.core.model import Model
 from azureml.tensorboard import Tensorboard
 from azureml.core.authentication import InteractiveLoginAuthentication
 
@@ -16,7 +17,7 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("-f", "--file", help="python script", type=str)
     parser.add_argument(
-        "-t", "--target_path", help="file folder in datastore", type=str
+        "-t", "--target_folder", help="file folder in datastore", type=str
     )
     parser.add_argument("-n", "--experiment_name", help="name of experiment", type=str)
     args = parser.parse_args()
@@ -33,7 +34,7 @@ def main():
 
     # Set up the dataset for training
     datastore = work_space.get_default_datastore()
-    dataset = Dataset.File.from_files(path=(datastore, args.target_path))
+    dataset = Dataset.File.from_files(path=(datastore, args.target_folder))
 
     # Set up the experiment for training
     experiment = Experiment(workspace=work_space, name=args.experiment_name)
@@ -43,8 +44,10 @@ def main():
         script=args.file,
         compute_target="cpu-cluster",
         arguments=[
-            "--data_folder",
+            "--target_folder",
             dataset.as_named_input("input").as_mount(),
+            "--tensorboard",
+            True,
             "--log_folder",
             "./logs",
         ],
@@ -75,20 +78,24 @@ def main():
     input()
     tboard.stop()
 
-    # Register Model
-    metrics = run.get_metrics()
+    # metrics = run.get_metrics()
+    # run.register_model(
+    #     model_name=args.experiment_name,
+    #     tags={"data": "mnist", "model": "classification"},
+    #     model_path="outputs/keras_lenet.h5",
+    #     model_framework=Model.Framework.TENSORFLOW,
+    #     model_framework_version="2.3.1",
+    #     properties={
+    #         "train_loss": metrics["train_loss"][-1],
+    #         "val_loss": metrics["val_loss"][-1],
+    #     },
+    # )
+    # Register
     run.register_model(
-        model_name=args.experiment_name,
-        tags={"data": "mnist", "model": "classification"},
-        model_path="outputs/keras_lenet.h5",
-        model_framework=Model.Framework.TENSORFLOW,
-        model_framework_version="2.3.1",
-        properties={
-            "train_loss": metrics["train_loss"][-1],
-            "train_accuracy": metrics["train_accuracy"][-1],
-            "val_loss": metrics["val_loss"][-1],
-            "val_accuracy": metrics["val_accuracy"][-1],
-        },
+        model_name=args.data_folder.split("/")[1],
+        tags={"data": "USD/TWD from 1983-10-04", "model": "classification"},
+        model_path="outputs/scaler.pickle",
+        model_framework="sklearn",
     )
 
 
