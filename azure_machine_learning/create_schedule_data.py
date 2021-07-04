@@ -17,7 +17,7 @@ def main():
     recurrence = ScheduleRecurrence(
         frequency="Week",
         interval=1,
-        start_time="2021-07-06",
+        start_time="2021-07-06T09:00:00",
         time_zone=TimeZone.TaipeiStandardTime,
         week_days=["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
         time_of_day="7:00",
