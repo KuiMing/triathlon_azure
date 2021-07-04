@@ -16,7 +16,8 @@ def main():
     environment = work_space.environments["train_lstm"]
     aml_run_config.environment = environment
 
-    get_currency = PythonScriptStep(
+    training = PythonScriptStep(
+        source_directory=".",
         name="train_lstm",
         script_name="train_lstm.py",
         compute_target="cpu-cluster",
@@ -24,14 +25,23 @@ def main():
         arguments=["--target_path", dataset.as_named_input("input").as_mount()],
         allow_reuse=True,
     )
-    experiment = Experiment(work_space, "train_lstm")
+    deploy = PythonScriptStep(
+        source_directory=".",
+        name="deploy_currency_prediction",
+        script_name="deploy_currency_prediction.py",
+        compute_target="cpu-cluster",
+        runconfig=aml_run_config,
+        allow_reuse=True,
+    )
 
-    pipeline = Pipeline(workspace=work_space, steps=[get_currency])
+    experiment = Experiment(work_space, "train_deploy")
+
+    pipeline = Pipeline(workspace=work_space, steps=[training, deploy])
     run = experiment.submit(pipeline)
     run.wait_for_completion(show_output=True)
     run.publish_pipline(
-        name="train_lstm_pipeline",
-        description="train lstm with pipeline",
+        name="train_deploy_pipeline",
+        description="train the lstm model and deploy the prediction service with pipeline",
         version="1.0",
     )
 
