@@ -4,6 +4,7 @@ import pickle
 import numpy as np
 from azureml.core import Run
 import pandas as pd
+import keras
 from keras.models import Sequential
 from keras.layers import Dense, LSTM, Dropout
 from keras.preprocessing.sequence import TimeseriesGenerator
@@ -94,28 +95,26 @@ def main():
     # ouput log
     metrics = history_callback.history
     run.log_list("train_loss", metrics["loss"])
-    run.log_list("train_accuracy", metrics["accuracy"])
     run.log_list("val_loss", metrics["val_loss"])
-    run.log_list("val_accuracy", metrics["val_accuracy"])
 
-    run.register_model(
-        model_name=args.data_folder.split("/")[1],
-        tags={"data": "mnist", "model": "classification"},
-        model_path="outputs/keras_lenet.h5",
-        model_framework="keras",
-        model_framework_version="2.3.1",
-        properties={
-            "train_loss": metrics["train_loss"][-1],
-            "train_accuracy": metrics["train_accuracy"][-1],
-            "val_loss": metrics["val_loss"][-1],
-            "val_accuracy": metrics["val_accuracy"][-1],
-        },
-    )
     print("Finished Training")
-    model.save("outputs/keras_lenet.h5")
+    model.save("outputs/keras_lstm.h5")
     with open("outputs/scaler.pickle", "wb") as f_h:
         pickle.dump(scaler, f_h)
     f_h.close()
+    # Register Model
+    run.register_model(
+        model_name=args.data_folder.split("/")[1],
+        tags={"data": "USD/TWD", "model": "LSTM"},
+        model_path="outputs/keras_lstm.h5",
+        model_framework="keras",
+        model_framework_version=keras.__version__,
+        properties={
+            "train_loss": metrics["train_loss"][-1],
+            "val_loss": metrics["val_loss"][-1],
+        },
+    )
+
     print("Saved Model")
 
 
