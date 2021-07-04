@@ -13,12 +13,7 @@ from azureml.core import Workspace, Run, Dataset
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--history", type=bool, default=False)
-    parser.add_argument(
-        "--target_path",
-        help="file folder in datastore",
-        type=str,
-        default="datasets/currency",
-    )
+    parser.add_argument("--target_folder", type=str, help="data folder")
     args = parser.parse_args()
     return args
 
@@ -74,9 +69,11 @@ def main():
             work_space = run.experiment.workspace
         except AttributeError:
             work_space = Workspace.from_config()
+
+        ## Register the dataset
         datastore = work_space.get_default_datastore()
-        dataset = Dataset.File.from_files(path=(datastore, args.target_path))
-        dataset.register(work_space, name=args.target_path.split("/")[1])
+        dataset = Dataset.File.from_files(path=(datastore, "currency"))
+        dataset.register(work_space, name="currency")
 
 
 if __name__ == "__main__":
