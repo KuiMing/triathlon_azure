@@ -33,6 +33,9 @@ def get_partial_csv(path, rows):
 def main():
     args = parse_args()
     if args.history:
+        if not os.path.isdir("currency"):
+            os.system("mkdir currency")
+
         usd_twd = investpy.get_currency_cross_historical_data(
             "USD/TWD",
             from_date="01/01/1900",
