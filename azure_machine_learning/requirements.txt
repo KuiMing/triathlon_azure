@@ -1,0 +1,5 @@
+numpy
+pandas
+tensorflow
+Keras==2.2.4
+azureml-defaults
