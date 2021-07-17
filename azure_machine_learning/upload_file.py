@@ -14,7 +14,7 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("-f", "--folder", help="file folder", type=str)
     parser.add_argument(
-        "-t", "--target_path", help="file folder in datastore", type=str
+        "-t", "--target_folder", help="file folder in datastore", type=str
     )
     parser.add_argument("-n", "--dataname", help="name of dataset", type=str)
     args = parser.parse_args()
@@ -29,8 +29,10 @@ def main():
     interactive_auth = InteractiveLoginAuthentication(tenant_id=os.getenv("TENANT_ID"))
     work_space = Workspace.from_config(auth=interactive_auth)
     datastore = work_space.get_default_datastore()
-    datastore.upload(src_dir=args.folder, target_path=args.target_path, overwrite=True)
-    dataset = Dataset.File.from_files(path=(datastore, args.target_path))
+    datastore.upload(
+        src_dir=args.folder, target_folder=args.target_folder, overwrite=True
+    )
+    dataset = Dataset.File.from_files(path=(datastore, args.target_folder))
     dataset.register(work_space, name=args.dataname)
 
 
