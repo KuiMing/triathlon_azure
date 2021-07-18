@@ -30,7 +30,7 @@ def main():
     work_space = Workspace.from_config(auth=interactive_auth)
     datastore = work_space.get_default_datastore()
     datastore.upload(
-        src_dir=args.folder, target_folder=args.target_folder, overwrite=True
+        src_dir=args.folder, target_path=args.target_folder, overwrite=True
     )
     dataset = Dataset.File.from_files(path=(datastore, args.target_folder))
     dataset.register(work_space, name=args.dataname)
