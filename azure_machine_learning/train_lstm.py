@@ -4,7 +4,8 @@ import pickle
 import numpy as np
 from azureml.core import Run
 import pandas as pd
-import keras
+
+# import keras
 from keras.models import Sequential
 from keras.layers import Dense, LSTM, Dropout
 from keras.preprocessing.sequence import TimeseriesGenerator
@@ -47,20 +48,15 @@ def main():
     Training of LeNet with keras
     """
     args = parse_args()
-    print("===== DATA =====")
-    print("DATA PATH: {}".format(args.data_folder))
-    print("LIST FILES IN DATA PATH...")
-    print("================")
     run = Run.get_context()
 
     # Load mnist data
-    usd_twd = pd.read_csv(os.path.join(args.target_folder, "usd_twd.csv"))
+    usd_twd = pd.read_csv(os.path.join(args.target_folder, "training_data.csv"))
     data = usd_twd.Close.values.reshape(-1, 1)
-    with open(os.path.join(args.data_folder, "scaler.pickle"), "rb") as f_h:
+    with open(os.path.join(args.target_folder, "scaler.pickle"), "rb") as f_h:
         scaler = pickle.load(f_h)
     f_h.close()
     data = scaler.fit_transform(data)
-    data = data[usd_twd[usd_twd.Date >= "2010-01-01"].index]
     data_len = 240
     x_train, y_train, x_val, y_val = data_generator(data, data_len)
     model = Sequential()
@@ -96,29 +92,15 @@ def main():
     metrics = history_callback.history
     run.log_list("train_loss", metrics["loss"])
     run.log_list("val_loss", metrics["val_loss"])
+    run.log_list("start", [usd_twd.Date.values[0]])
+    run.log_list("end", [usd_twd.Date.values[-1]])
+    run.log_list("epoch", [len(history_callback.epoch)])
 
     print("Finished Training")
     model.save("outputs/keras_lstm.h5")
     with open("outputs/scaler.pickle", "wb") as f_h:
         pickle.dump(scaler, f_h)
     f_h.close()
-    # Register Model
-    run.register_model(
-        model_name=args.data_folder.split("/")[1],
-        tags={
-            "data": "USD/TWD from {0} to {1}".format(
-                usd_twd.Date.values[0], usd_twd.Date.values[-1]
-            ),
-            "model": "LSTM",
-        },
-        model_path="outputs/keras_lstm.h5",
-        model_framework="keras",
-        model_framework_version=keras.__version__,
-        properties={
-            "train_loss": metrics["train_loss"][-1],
-            "val_loss": metrics["val_loss"][-1],
-        },
-    )
 
     print("Saved Model")
 
