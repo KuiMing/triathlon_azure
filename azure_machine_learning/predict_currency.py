@@ -2,10 +2,10 @@
 Run the prediction on Azure machine learning.
 """
 import os
-import json
+from datetime import datetime, timedelta
 import pickle
-import numpy as np
 from keras.models import load_model
+import investpy
 
 
 def init():
@@ -14,12 +14,14 @@ def init():
     """
     global model
     global scaler
-    # AZUREML_MODEL_DIR is an environment variable created during deployment.
-    # It is the path to the model folder (./azureml-models/$MODEL_NAME/$VERSION)
-    # For multiple models, it points to the folder containing all deployed models (./azureml-models)
-    model_path = os.path.join(os.getenv("AZUREML_MODEL_DIR"), "keras_lstm.h5")
+
+    for root, _, files in os.walk("/var/azureml-app/azureml-models/", topdown=False):
+        for name in files:
+            if name.split(".")[-1] == "h5":
+                model_path = os.path.join(root, name)
+            elif name.split(".")[-1] == "pickle":
+                scaler_path = os.path.join(root, name)
     model = load_model(model_path)
-    scaler_path = os.path.join(os.getenv("AZUREML_MODEL_DIR"), "scaler.pickle")
     with open(scaler_path, "rb") as f_h:
         scaler = pickle.load(f_h)
     f_h.close()
@@ -29,10 +31,18 @@ def run(raw_data):
     """
     Prediction
     """
-    data = json.loads(raw_data)["data"]
-    data = np.array(data)
+
+    today = datetime.now()
+    data = investpy.get_currency_cross_historical_data(
+        "USD/TWD",
+        from_date=(today - timedelta(weeks=105)).strftime("%d/%m/%Y"),
+        to_date=today.strftime("%d/%m/%Y"),
+    )
+    data.reset_index(inplace=True)
+    data = data.tail(240).Close.values.reshape(-1, 1)
+    data = scaler.fit_transform(data)
     data = data.reshape((1, 240, 1))
     # make prediction
-    prediction = model.predict(data)
-    ans = scaler.inverse_transform(prediction)
-    return float(ans)
+    ans = model.predict(data)
+    ans = scaler.inverse_transform(ans)
+    return float(ans[0][0])
