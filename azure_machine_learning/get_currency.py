@@ -52,7 +52,7 @@ def main():
         currency_data = usd_twd[
             (usd_twd.Date >= "2010-01-01") & (usd_twd.Date < "2021-01-01")
         ]
-        currency_data.to_csv("currency/traing_data.csv")
+        currency_data.to_csv("currency/training_data.csv")
     else:
         path = os.path.join(args.target_folder, "usd_twd.csv")
         history = get_partial_csv(path, 2)
@@ -66,7 +66,9 @@ def main():
         ]
         recent.to_csv(path, header=False, index=False, mode="a")
         history = get_partial_csv(path, 2400)
-        history.to_csv(os.path.join(args.target_folder, "traing_data.csv"), index=False)
+        history.to_csv(
+            os.path.join(args.target_folder, "training_data.csv"), index=False
+        )
         run = Run.get_context()
         try:
             work_space = run.experiment.workspace
