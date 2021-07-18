@@ -3,7 +3,7 @@ Run the experiment for training
 """
 import os
 import argparse
-from azureml.core import ScriptRunConfig, Dataset, Workspace, Experiment, Environment
+from azureml.core import ScriptRunConfig, Dataset, Workspace, Experiment
 
 # from azureml.core.model import Model
 from azureml.tensorboard import Tensorboard
@@ -19,7 +19,6 @@ def parse_args():
     parser.add_argument(
         "-t", "--target_folder", help="file folder in datastore", type=str
     )
-    parser.add_argument("-n", "--experiment_name", help="name of experiment", type=str)
     args = parser.parse_args()
     return args
 
@@ -37,7 +36,7 @@ def main():
     dataset = Dataset.File.from_files(path=(datastore, args.target_folder))
 
     # Set up the experiment for training
-    experiment = Experiment(workspace=work_space, name=args.experiment_name)
+    experiment = Experiment(workspace=work_space, name=args.file.replace(".py", ""))
     #     azureml._restclient.snapshots_client.SNAPSHOT_MAX_SIZE_BYTES = 2000000000
     config = ScriptRunConfig(
         source_directory=".",
@@ -54,10 +53,7 @@ def main():
     )
 
     # Set up the Tensoflow/Keras environment
-    environment = Environment.from_pip_requirements(
-        name=args.file.replace(".py", ""), file_path="requirements.txt"
-    )
-    environment.register(work_space)
+    environment = work_space.environments[args.file.replace(".py", "")]
     config.run_config.environment = environment
 
     # Run the experiment for training
@@ -78,22 +74,25 @@ def main():
     input()
     tboard.stop()
 
-    # metrics = run.get_metrics()
-    # run.register_model(
-    #     model_name=args.experiment_name,
-    #     tags={"data": "mnist", "model": "classification"},
-    #     model_path="outputs/keras_lenet.h5",
-    #     model_framework=Model.Framework.TENSORFLOW,
-    #     model_framework_version="2.3.1",
-    #     properties={
-    #         "train_loss": metrics["train_loss"][-1],
-    #         "val_loss": metrics["val_loss"][-1],
-    #     },
-    # )
     # Register
+    metrics = run.get_metrics()
     run.register_model(
-        model_name=args.data_folder.split("/")[1],
-        tags={"data": "USD/TWD from 1983-10-04", "model": "classification"},
+        model_name=args.target_folder,
+        tags={"model": "LSTM"},
+        model_path="outputs/keras_lstm.h5",
+        model_framework="keras",
+        model_framework_version="2.2.4",
+        properties={
+            "train_loss": metrics["train_loss"][-1],
+            "val_loss": metrics["val_loss"][-1],
+            "data": "USD/TWD from {0} to {1}".format(metrics["start"], metrics["end"]),
+            "epoch": metrics["epoch"],
+        },
+    )
+
+    run.register_model(
+        model_name="scaler",
+        tags={"data": "USD/TWD from 1983-10-04", "model": "MinMaxScaler"},
         model_path="outputs/scaler.pickle",
         model_framework="sklearn",
     )
