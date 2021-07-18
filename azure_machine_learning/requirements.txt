@@ -1,5 +1,8 @@
 numpy
+scikit-learn==0.23.2
 pandas
-tensorflow
+tensorflow==1.13.1
 Keras==2.2.4
 azureml-defaults
+investpy
+h5py==2.10.0
