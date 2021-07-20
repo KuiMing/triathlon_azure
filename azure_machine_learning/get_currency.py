@@ -7,27 +7,15 @@ import pickle
 import pandas as pd
 import investpy
 from sklearn.preprocessing import MinMaxScaler
-from azureml.core import Workspace, Run, Dataset
 
 
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--history", type=bool, default=False)
-    parser.add_argument("--target_folder", type=str, help="data folder")
+    parser.add_argument("--target_folder", type=str)
+    parser.add_argument("--input_folder", type=str)
     args = parser.parse_args()
     return args
-
-
-def get_partial_csv(path, rows):
-    with open(path, "r") as f_h:
-        que = deque(f_h, rows)
-    f_h.close()
-    history = pd.read_csv(
-        StringIO("".join(que)),
-        header=None,
-        names=["Date", "Open", "High", "Low", "Close", "Currency"],
-    )
-    return history
 
 
 def main():
@@ -55,30 +43,18 @@ def main():
         currency_data.to_csv("currency/training_data.csv")
     else:
         path = os.path.join(args.target_folder, "usd_twd.csv")
-        history = get_partial_csv(path, 2)
+        input_path = os.path.join(args.input_folder, "usd_twd.csv")
+        history = pd.read_csv(input_path)
 
         recent = investpy.get_currency_cross_recent_data("USD/TWD")
         recent.reset_index(inplace=True)
-        recent = recent[
-            ~recent.Date.isin(
-                list(history.Date.values) + [datetime.now().strftime("%Y-%m-%d")]
-            )
-        ]
-        recent.to_csv(path, header=False, index=False, mode="a")
-        history = get_partial_csv(path, 2400)
+        history = history.append(recent, ignore_index=True)
+        history.drop_duplicates(subset="Date", keep="last", inplace=True)
+        history.to_csv(path, index=False)
+        history = history.tail(2400)
         history.to_csv(
             os.path.join(args.target_folder, "training_data.csv"), index=False
         )
-        run = Run.get_context()
-        try:
-            work_space = run.experiment.workspace
-        except AttributeError:
-            work_space = Workspace.from_config()
-
-        ## Register the dataset
-        datastore = work_space.get_default_datastore()
-        dataset = Dataset.File.from_files(path=(datastore, "currency"))
-        dataset.register(work_space, name="currency")
 
 
 if __name__ == "__main__":
