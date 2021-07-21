@@ -22,7 +22,7 @@ def main():
         script_name="train_lstm.py",
         compute_target="cpu-cluster",
         runconfig=aml_run_config,
-        arguments=["--target_path", dataset.as_named_input("input").as_mount()],
+        arguments=["--target_folder", dataset.as_named_input("input").as_mount()],
         allow_reuse=True,
     )
     deploy = PythonScriptStep(
@@ -39,7 +39,7 @@ def main():
     pipeline = Pipeline(workspace=work_space, steps=[training, deploy])
     run = experiment.submit(pipeline)
     run.wait_for_completion(show_output=True)
-    run.publish_pipline(
+    run.publish_pipeline(
         name="train_deploy_pipeline",
         description="train the lstm model and deploy the prediction service with pipeline",
         version="1.0",
