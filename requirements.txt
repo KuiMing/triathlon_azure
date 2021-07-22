@@ -1,0 +1,6 @@
+Flask==1.0.2
+line-bot-sdk
+azure-cognitiveservices-vision-computervision
+imgur-python
+Pillow
+azure-cognitiveservices-vision-face
