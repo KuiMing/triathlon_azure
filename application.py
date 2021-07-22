@@ -27,7 +27,7 @@ import time
 app = Flask(__name__)
 
 
-# CONFIG = json.load(open("/home/config.json", "r"))
+CONFIG = json.load(open("/home/config.json", "r"))
 
 # SUBSCRIPTION_KEY = CONFIG["azure"]["subscription_key"]
 # ENDPOINT = CONFIG["azure"]["endpoint"]
@@ -40,10 +40,10 @@ app = Flask(__name__)
 # FACE_CLIENT = FaceClient(FACE_END, CognitiveServicesCredentials(FACE_KEY))
 # PERSON_GROUP_ID = "tibame"
 
-# LINE_SECRET = CONFIG["line"]["line_secret"]
-# LINE_TOKEN = CONFIG["line"]["line_token"]
-# LINE_BOT = LineBotApi(LINE_TOKEN)
-# HANDLER = WebhookHandler(LINE_SECRET)
+LINE_SECRET = CONFIG["line"]["line_secret"]
+LINE_TOKEN = CONFIG["line"]["line_token"]
+LINE_BOT = LineBotApi(LINE_TOKEN)
+HANDLER = WebhookHandler(LINE_SECRET)
 
 
 # IMGUR_CONFIG = CONFIG["imgur"]
@@ -151,24 +151,24 @@ def hello():
 #     return person.name
 
 
-# @app.route("/callback", methods=["POST"])
-# def callback():
-#     """
-#     LINE bot webhook callback
-#     """
-#     # get X-Line-Signature header value
-#     signature = request.headers["X-Line-Signature"]
-#     print(signature)
-#     body = request.get_data(as_text=True)
-#     print(body)
-#     try:
-#         HANDLER.handle(body, signature)
-#     except InvalidSignatureError:
-#         print(
-#             "Invalid signature. Please check your channel access token/channel secret."
-#         )
-#         abort(400)
-#     return "OK"
+@app.route("/callback", methods=["POST"])
+def callback():
+    """
+    LINE bot webhook callback
+    """
+    # get X-Line-Signature header value
+    signature = request.headers["X-Line-Signature"]
+    print(signature)
+    body = request.get_data(as_text=True)
+    print(body)
+    try:
+        HANDLER.handle(body, signature)
+    except InvalidSignatureError:
+        print(
+            "Invalid signature. Please check your channel access token/channel secret."
+        )
+        abort(400)
+    return "OK"
 
 
 # @HANDLER.add(MessageEvent, message=TextMessage)
