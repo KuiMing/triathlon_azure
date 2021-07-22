@@ -190,7 +190,7 @@ def handle_message(event):
     #     except:
     if event.message.text == "currency":
         recent = investpy.get_currency_cross_recent_data("USD/TWD")
-        message = TextSendMessage(text=recent.Close.value[-1])
+        message = TextSendMessage(text=recent.Close.values[-1])
     else:
         message = TextSendMessage(text=event.message.text)
     LINE_BOT.reply_message(event.reply_token, message)
