@@ -12,15 +12,15 @@ def main():
     work_space = Workspace.from_config(auth=interactive_auth)
     pipelines = PublishedPipeline.list(work_space)
     pipeline_id = next(
-        p_l.id for p_l in pipelines() if p_l.name == "train_deploy_pipeline"
+        p_l.id for p_l in pipelines if p_l.name == "train_deploy_pipeline"
     )
     recurrence = ScheduleRecurrence(
         frequency="Week",
         interval=1,
-        start_time="2021-07-06T07:00:00",
+        start_time="2021-07-21T07:00:00",
         time_zone=TimeZone.TaipeiStandardTime,
-        week_days=["Sunday"],
-        time_of_day="7:00",
+        week_days=["Wednesday"],
+        time_of_day="12:00",
     )
     Schedule.create(
         work_space,
