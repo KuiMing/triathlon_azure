@@ -23,6 +23,7 @@ from linebot.models import (
 from imgur_python import Imgur
 from PIL import Image, ImageDraw, ImageFont
 import time
+import investpy
 
 app = Flask(__name__)
 
@@ -171,24 +172,28 @@ def callback():
     return "OK"
 
 
-# @HANDLER.add(MessageEvent, message=TextMessage)
-# def handle_message(event):
-#     """
-#     Reply text message
-#     """
-#     json_file = {"TIBAME": "templates/bubble.json", "HELP": "templates/carousel.json"}
-#     try:
-#         filename = json_file[event.message.text.upper()]
-#         with open(filename, "r") as f_r:
-#             bubble = json.load(f_r)
-#         f_r.close()
-#         LINE_BOT.reply_message(
-#             event.reply_token,
-#             [FlexSendMessage(alt_text="Information", contents=bubble)],
-#         )
-#     except:
-#         message = TextSendMessage(text=event.message.text)
-#         LINE_BOT.reply_message(event.reply_token, message)
+@HANDLER.add(MessageEvent, message=TextMessage)
+def handle_message(event):
+    """
+    Reply text message
+    """
+    # json_file = {"TIBAME": "templates/bubble.json", "HELP": "templates/carousel.json"}
+    # try:
+    #     filename = json_file[event.message.text.upper()]
+    #     with open(filename, "r") as f_r:
+    #         bubble = json.load(f_r)
+    #     f_r.close()
+    #     LINE_BOT.reply_message(
+    #         event.reply_token,
+    #         [FlexSendMessage(alt_text="Information", contents=bubble)],
+    #     )
+    #     except:
+    if event.message.text == "currency":
+        recent = investpy.get_currency_cross_recent_data("USD/TWD")
+        message = TextSendMessage(text=recent.Close.value[-1])
+    else:
+        message = TextSendMessage(text=event.message.text)
+    LINE_BOT.reply_message(event.reply_token, message)
 
 
 # @HANDLER.add(MessageEvent, message=ImageMessage)

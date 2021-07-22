@@ -4,3 +4,4 @@ azure-cognitiveservices-vision-computervision
 imgur-python
 Pillow
 azure-cognitiveservices-vision-face
+investpy
