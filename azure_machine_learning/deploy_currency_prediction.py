@@ -14,12 +14,13 @@ def main():
     """
     Deploy model to your service
     """
-    interactive_auth = InteractiveLoginAuthentication(tenant_id=os.getenv("TENANT_ID"))
-
     run = Run.get_context()
     try:
         work_space = run.experiment.workspace
     except AttributeError:
+        interactive_auth = InteractiveLoginAuthentication(
+            tenant_id=os.getenv("TENANT_ID")
+        )
         work_space = Workspace.from_config(auth=interactive_auth)
     environment = work_space.environments["train_lstm"]
     model = Model(work_space, "currency")
