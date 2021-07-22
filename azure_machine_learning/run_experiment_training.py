@@ -45,7 +45,7 @@ def main():
         arguments=[
             "--target_folder",
             dataset.as_named_input("input").as_mount(),
-            "--tensorboard",
+            "--experiment",
             True,
             "--log_folder",
             "./logs",
