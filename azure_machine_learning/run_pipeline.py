@@ -29,7 +29,6 @@ def main():
         script_name="get_currency.py",
         compute_target="cpu-cluster",
         runconfig=aml_run_config,
-        inputs=[input_folder],
         arguments=[
             "--target_folder",
             dataset.as_upload(overwrite=True).register_on_complete(name="currency"),
@@ -45,7 +44,6 @@ def main():
         script_name="train_lstm.py",
         compute_target="cpu-cluster",
         runconfig=aml_run_config,
-        inputs=[dataset.as_input()],
         arguments=["--target_folder", dataset.as_input()],
         allow_reuse=True,
     )
