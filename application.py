@@ -46,7 +46,7 @@ LINE_TOKEN = CONFIG["line"]["line_token"]
 LINE_BOT = LineBotApi(LINE_TOKEN)
 HANDLER = WebhookHandler(LINE_SECRET)
 
-
+ML_URL = CONFIG["azure"]["azureml_endpoint"]
 # IMGUR_CONFIG = CONFIG["imgur"]
 # IMGUR_CLIENT = Imgur(config=IMGUR_CONFIG)
 
@@ -191,6 +191,15 @@ def handle_message(event):
     if event.message.text == "currency":
         recent = investpy.get_currency_cross_recent_data("USD/TWD")
         message = TextSendMessage(text=recent.Close.values[-1])
+    elif event.message.text == "prediction":
+        recent = investpy.get_currency_cross_recent_data("USD/TWD")
+        data = {"data": ""}
+        input_data = json.dumps(data)
+        headers = {"Content-Type": "application/json"}
+        resp = requests.post(ML_URL, input_data, headers=headers)
+        message = TextSendMessage(
+            text="now: {}, prediction: {}".format(recent.Close.values[-1], resp.text)
+        )
     else:
         message = TextSendMessage(text=event.message.text)
     LINE_BOT.reply_message(event.reply_token, message)
