@@ -5,3 +5,4 @@ imgur-python
 Pillow
 azure-cognitiveservices-vision-face
 investpy
+azure-storage-blob

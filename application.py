@@ -10,6 +10,8 @@ from flask import Flask, request, abort
 from azure.cognitiveservices.vision.computervision import ComputerVisionClient
 from azure.cognitiveservices.vision.computervision.models import OperationStatusCodes
 from azure.cognitiveservices.vision.face import FaceClient
+from azure.storage.blob import BlobServiceClient, BlobClient, ContainerClient
+
 from msrest.authentication import CognitiveServicesCredentials
 from linebot import LineBotApi, WebhookHandler
 from linebot.exceptions import InvalidSignatureError
@@ -43,6 +45,9 @@ CV_CLIENT = ComputerVisionClient(
 
 ML_URL = CONFIG["azure"]["azureml_endpoint"]
 
+CONNECT_STR = CONFIG["azure"]["blob_connect"]
+CONTAINER = CONFIG["azure"]["blob_container"]
+
 LINE_SECRET = CONFIG["line"]["line_secret"]
 LINE_TOKEN = CONFIG["line"]["line_token"]
 LINE_BOT = LineBotApi(LINE_TOKEN)
@@ -52,11 +57,23 @@ HANDLER = WebhookHandler(LINE_SECRET)
 IMGUR_CONFIG = CONFIG["imgur"]
 IMGUR_CLIENT = Imgur(config=IMGUR_CONFIG)
 
+BLOB_SERVICE = BlobServiceClient.from_connection_string(CONNECT_STR)
+
 
 @app.route("/")
 def hello():
     "hello world"
     return "Hello World!!!!!"
+
+
+def upload_blob(container, path):
+    blob_client = BLOB_SERVICE.get_blob_client(
+        container=container, blob=path.split("/")[-1]
+    )
+    with open(path, "rb") as data:
+        blob_client.upload_blob(data)
+    data.close()
+    return blob_client.url
 
 
 def azure_describe(url):
@@ -124,8 +141,9 @@ def azure_object_detection(url, filename):
                 font=fnt,
             )
     img.save(filename)
-    image = IMGUR_CLIENT.image_upload(filename, "", "")
-    link = image["response"]["data"]["link"]
+    # image = IMGUR_CLIENT.image_upload(filename, "", "")
+    # link = image["response"]["data"]["link"]
+    link = upload_blob(CONTAINER, filename)
     os.remove(filename)
     return link
 
@@ -221,8 +239,9 @@ def handle_content_message(event):
         for chunk in message_content.iter_content():
             f_w.write(chunk)
     f_w.close()
-    image = IMGUR_CLIENT.image_upload(filename, "first", "first")
-    link = image["response"]["data"]["link"]
+    # image = IMGUR_CLIENT.image_upload(filename, "first", "first")
+    # link = image["response"]["data"]["link"]
+    link = upload_blob(CONTAINER, filename)
     # name = azure_face_recognition(filename)
     name = ""
     if name != "":
