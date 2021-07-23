@@ -69,9 +69,8 @@ def hello():
 def upload_blob(container, path):
     blob_client = BLOB_SERVICE.get_blob_client(container=container, blob=path)
     with open(path, "rb") as data:
-        blob_client.upload_blob(data)
+        blob_client.upload_blob(data, overwrite=True)
     data.close()
-    print(blob_client.url)
     return blob_client.url
 
 
