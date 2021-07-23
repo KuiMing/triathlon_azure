@@ -1,0 +1,59 @@
+{
+    "type": "carousel",
+    "contents": [
+        {
+            "type": "bubble",
+            "hero": {
+                "type": "image",
+                "size": "full",
+                "aspectRatio": "20:13",
+                "aspectMode": "cover",
+                "url": "https://store-images.s-microsoft.com/image/apps.37852.9007199266243461.f72365e2-47bd-4dda-bddf-561a851c8ecc.9134639f-0387-44bc-8202-0818e7b28afd?mode=scale&q=90"
+            },
+            "footer": {
+                "type": "box",
+                "layout": "vertical",
+                "spacing": "sm",
+                "contents": [
+                    {
+                        "type": "button",
+                        "style": "primary",
+                        "action": {
+                            "type": "uri",
+                            "label": "Line Messaging API",
+                            "uri": "https://developers.line.biz/zh-hant/docs/messaging-api/"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "type": "bubble",
+            "hero": {
+                "type": "image",
+                "size": "full",
+                "aspectRatio": "20:13",
+                "aspectMode": "cover",
+                "url": "https://azure.microsoft.com/svghandler/storage-page-blobs/?width=600&height=315"
+            },
+            "footer": {
+                "type": "box",
+                "layout": "vertical",
+                "spacing": "sm",
+                "contents": [
+                    {
+                        "type": "button",
+                        "flex": 2,
+                        "style": "primary",
+                        "color": "#1E90FF",
+                        "action": {
+                            "type": "uri",
+                            "label": "Azure",
+                            "uri": "https://docs.microsoft.com/zh-tw/azure/?product=all"
+                        }
+                    }
+                ]
+            }
+        }
+    ]
+}

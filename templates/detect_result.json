@@ -1,0 +1,60 @@
+{
+    "type": "bubble",
+    "header": {
+        "type": "box",
+        "layout": "vertical",
+        "contents": [
+            {
+                "type": "box",
+                "layout": "horizontal",
+                "contents": [
+                    {
+                        "type": "box",
+                        "layout": "vertical",
+                        "contents": [
+                            {
+                                "type": "image",
+                                "url": "link",
+                                "size": "full",
+                                "aspectMode": "cover",
+                                "aspectRatio": "1:1",
+                                "gravity": "center"
+                            }
+                        ],
+                        "flex": 1
+                    }
+                ]
+            }
+        ],
+        "paddingAll": "0px"
+    },
+    "body": {
+        "type": "box",
+        "layout": "vertical",
+        "contents": [
+            {
+                "type": "box",
+                "layout": "vertical",
+                "contents": [
+                    {
+                        "type": "box",
+                        "layout": "vertical",
+                        "contents": [
+                            {
+                                "type": "text",
+                                "text": "output",
+                                "color": "#ffffffcc",
+                                "size": "sm",
+                                "wrap": true
+                            }
+                        ],
+                        "spacing": "sm"
+                    }
+                ],
+                "height": "50px"
+            }
+        ],
+        "paddingAll": "20px",
+        "backgroundColor": "#464F69"
+    }
+}
