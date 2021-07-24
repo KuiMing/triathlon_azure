@@ -108,8 +108,7 @@ def azure_ocr(url):
     if get_handw_text_results.status == OperationStatusCodes.succeeded:
         for text_result in get_handw_text_results.analyze_result.read_results:
             for line in text_result.lines:
-                if len(line.text) <= 8:
-                    text.append(line.text)
+                text.append(line.text)
     # Filter text for Taiwan license plate
     # r = re.compile("[0-9A-Z]{2,4}[.-]{1}[0-9A-Z]{2,4}")
     # text = list(filter(r.match, text))
