@@ -3,14 +3,13 @@ Object detection and image description on LINE bot
 """
 from datetime import datetime, timezone, timedelta
 import os
-import re
 import json
 import requests
 from flask import Flask, request, abort
 from azure.cognitiveservices.vision.computervision import ComputerVisionClient
 from azure.cognitiveservices.vision.computervision.models import OperationStatusCodes
 from azure.cognitiveservices.vision.face import FaceClient
-from azure.storage.blob import BlobServiceClient, BlobClient, ContainerClient
+from azure.storage.blob import BlobServiceClient
 
 from msrest.authentication import CognitiveServicesCredentials
 from linebot import LineBotApi, WebhookHandler
@@ -22,7 +21,6 @@ from linebot.models import (
     FlexSendMessage,
     ImageMessage,
 )
-from imgur_python import Imgur
 from PIL import Image, ImageDraw, ImageFont
 import time
 import investpy
@@ -272,7 +270,8 @@ def handle_content_message(event):
         # if len(plate) > 0:
         #     output = "License Plate: {}".format(plate)
         if len(text) > 0:
-            output = " ".join(text) + "\n" + azure_translation(" ".join(text))
+            translation = azure_translation(" ".join(text))
+            output = " ".join(text) + "\n" + " ".join(translation)
         else:
             output = azure_describe(link)
         link = link_ob
