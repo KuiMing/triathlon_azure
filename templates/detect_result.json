@@ -46,6 +46,17 @@
                                 "color": "#ffffffcc",
                                 "size": "sm",
                                 "wrap": true
+                            },
+                            {
+                                "type": "button",
+                                "flex": 2,
+                                "style": "primary",
+                                "color": "#1E90FF",
+                                "action": {
+                                    "type": "uri",
+                                    "label": "Azure",
+                                    "uri": "https://docs.microsoft.com/zh-tw/azure/?product=all"
+                                }
                             }
                         ],
                         "spacing": "sm"
