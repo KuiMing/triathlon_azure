@@ -111,9 +111,9 @@ def azure_ocr(url):
                 if len(line.text) <= 8:
                     text.append(line.text)
     # Filter text for Taiwan license plate
-    r = re.compile("[0-9A-Z]{2,4}[.-]{1}[0-9A-Z]{2,4}")
-    text = list(filter(r.match, text))
-    return text[0].replace(".", "-") if len(text) > 0 else ""
+    # r = re.compile("[0-9A-Z]{2,4}[.-]{1}[0-9A-Z]{2,4}")
+    # text = list(filter(r.match, text))
+    return text
 
 
 def azure_object_detection(url, filename):
@@ -246,10 +246,13 @@ def handle_content_message(event):
         now = datetime.now(timezone(timedelta(hours=8))).strftime("%Y-%m-%d %H:%M")
         output = "{0}, {1}".format(name, now)
     else:
-        plate = azure_ocr(link)
+        # plate = azure_ocr(link)
+        text = azure_ocr(link)
         link_ob = azure_object_detection(link, filename)
-        if len(plate) > 0:
-            output = "License Plate: {}".format(plate)
+        # if len(plate) > 0:
+        #     output = "License Plate: {}".format(plate)
+        if len(text) > 0:
+            output = " ".join(text)
         else:
             output = azure_describe(link)
         link = link_ob
