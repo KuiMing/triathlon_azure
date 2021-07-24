@@ -48,14 +48,13 @@ ML_URL = CONFIG["azure"]["azureml_endpoint"]
 CONNECT_STR = CONFIG["azure"]["blob_connect"]
 CONTAINER = CONFIG["azure"]["blob_container"]
 
+TRANS_KEY = CONFIG["azure"]["trans_key"]
+
 LINE_SECRET = CONFIG["line"]["line_secret"]
 LINE_TOKEN = CONFIG["line"]["line_token"]
 LINE_BOT = LineBotApi(LINE_TOKEN)
 HANDLER = WebhookHandler(LINE_SECRET)
 
-
-IMGUR_CONFIG = CONFIG["imgur"]
-IMGUR_CLIENT = Imgur(config=IMGUR_CONFIG)
 
 BLOB_SERVICE = BlobServiceClient.from_connection_string(CONNECT_STR)
 
@@ -113,6 +112,28 @@ def azure_ocr(url):
     # r = re.compile("[0-9A-Z]{2,4}[.-]{1}[0-9A-Z]{2,4}")
     # text = list(filter(r.match, text))
     return text
+
+
+def azure_translation(string):
+    trans_url = "https://api.cognitive.microsofttranslator.com/translate"
+
+    params = {"api-version": "2.0", "from": "ko", "to": ["zh-Hant"]}
+
+    headers = {
+        "Ocp-Apim-Subscription-Key": TRANS_KEY,
+        "Content-type": "application/json",
+        "Ocp-Apim-Subscription-Region": "eastus2",
+    }
+
+    # You can pass more than one object in body.
+    body = [{"text": string}]
+
+    req = requests.post(trans_url, params=params, headers=headers, json=body)
+    response = req.json()
+    ans = []
+    for i in response:
+        ans.append(i["translations"][0]["text"])
+    return ans
 
 
 def azure_object_detection(url, filename):
@@ -251,7 +272,7 @@ def handle_content_message(event):
         # if len(plate) > 0:
         #     output = "License Plate: {}".format(plate)
         if len(text) > 0:
-            output = " ".join(text)
+            output = " ".join(text) + "\n" + azure_translation(" ".join(text))
         else:
             output = azure_describe(link)
         link = link_ob
