@@ -41,10 +41,10 @@ CV_CLIENT = ComputerVisionClient(
     ENDPOINT, CognitiveServicesCredentials(SUBSCRIPTION_KEY)
 )
 
-# FACE_KEY = CONFIG["azure"]["face_key"]
-# FACE_END = CONFIG["azure"]["face_end"]
-# FACE_CLIENT = FaceClient(FACE_END, CognitiveServicesCredentials(FACE_KEY))
-# PERSON_GROUP_ID = "tibame"
+FACE_KEY = CONFIG["azure"]["face_key"]
+FACE_END = CONFIG["azure"]["face_end"]
+FACE_CLIENT = FaceClient(FACE_END, CognitiveServicesCredentials(FACE_KEY))
+PERSON_GROUP_ID = "triathlon"
 
 ML_URL = CONFIG["azure"]["azureml_endpoint"]
 
@@ -195,28 +195,28 @@ def azure_object_detection(url, filename):
     return link, img.size
 
 
-# def azure_face_recognition(filename):
-#     """
-#     Azure face recognition
-#     """
-#     img = open(filename, "r+b")
-#     detected_face = FACE_CLIENT.face.detect_with_stream(
-#         img, detection_model="detection_01"
-#     )
-#     if len(detected_face) != 1:
-#         return ""
-#     results = FACE_CLIENT.face.identify([detected_face[0].face_id], PERSON_GROUP_ID)
-#     if len(results) == 0:
-#         return "unknown"
-#     result = results[0].as_dict()
-#     if len(result["candidates"]) == 0:
-#         return "unknown"
-#     if result["candidates"][0]["confidence"] < 0.5:
-#         return "unknown"
-#     person = FACE_CLIENT.person_group_person.get(
-#         PERSON_GROUP_ID, result["candidates"][0]["person_id"]
-#     )
-#     return person.name
+def azure_face_recognition(filename):
+    """
+    Azure face recognition
+    """
+    img = open(filename, "r+b")
+    detected_face = FACE_CLIENT.face.detect_with_stream(
+        img, detection_model="detection_01"
+    )
+    if len(detected_face) != 1:
+        return ""
+    results = FACE_CLIENT.face.identify([detected_face[0].face_id], PERSON_GROUP_ID)
+    if len(results) == 0:
+        return "unknown"
+    result = results[0].as_dict()
+    if len(result["candidates"]) == 0:
+        return "unknown"
+    if result["candidates"][0]["confidence"] < 0.5:
+        return "unknown"
+    person = FACE_CLIENT.person_group_person.get(
+        PERSON_GROUP_ID, result["candidates"][0]["person_id"]
+    )
+    return person.name
 
 
 @app.route("/callback", methods=["POST"])
@@ -290,11 +290,8 @@ def handle_content_message(event):
         for chunk in message_content.iter_content():
             f_w.write(chunk)
     f_w.close()
-    # image = IMGUR_CLIENT.image_upload(filename, "first", "first")
-    # link = image["response"]["data"]["link"]
     link = upload_blob(CONTAINER, filename)
-    # name = azure_face_recognition(filename)
-    name = ""
+    name = azure_face_recognition(filename)
     output = ""
     if name != "":
         now = datetime.now(timezone(timedelta(hours=8))).strftime("%Y-%m-%d %H:%M")
