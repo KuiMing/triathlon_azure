@@ -161,7 +161,7 @@ def azure_object_detection(url, filename):
     # link = image["response"]["data"]["link"]
     link = upload_blob(CONTAINER, filename)
     os.remove(filename)
-    return link
+    return link, img.size
 
 
 # def azure_face_recognition(filename):
@@ -266,7 +266,7 @@ def handle_content_message(event):
     else:
         # plate = azure_ocr(link)
         text = azure_ocr(link)
-        link_ob = azure_object_detection(link, filename)
+        link_ob, size = azure_object_detection(link, filename)
         # if len(plate) > 0:
         #     output = "License Plate: {}".format(plate)
         if len(text) > 0:
@@ -281,6 +281,7 @@ def handle_content_message(event):
     f_r.close()
     bubble["body"]["contents"][0]["text"] = output
     bubble["header"]["contents"][0]["url"] = link
+    bubble["header"]["contents"][0]["aspectRatio"] = "{}:{}".format(size[0], size[1])
     LINE_BOT.reply_message(
         event.reply_token, [FlexSendMessage(alt_text="Report", contents=bubble)]
     )
