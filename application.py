@@ -131,7 +131,7 @@ def azure_speech(string, message_id):
         "flex": 2,
         "style": "primary",
         "color": "#1E90FF",
-        "action": {"type": "uri", "label": "Azure", "uri": link},
+        "action": {"type": "uri", "label": "Voice", "uri": link},
         "height": "sm",
     }
     return output
@@ -295,6 +295,7 @@ def handle_content_message(event):
     link = upload_blob(CONTAINER, filename)
     # name = azure_face_recognition(filename)
     name = ""
+    output = ""
     if name != "":
         now = datetime.now(timezone(timedelta(hours=8))).strftime("%Y-%m-%d %H:%M")
         output = "{0}, {1}".format(name, now)
