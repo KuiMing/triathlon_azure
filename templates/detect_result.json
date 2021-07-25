@@ -5,25 +5,12 @@
         "layout": "vertical",
         "contents": [
             {
-                "type": "box",
-                "layout": "horizontal",
-                "contents": [
-                    {
-                        "type": "box",
-                        "layout": "vertical",
-                        "contents": [
-                            {
-                                "type": "image",
-                                "url": "link",
-                                "size": "full",
-                                "aspectMode": "cover",
-                                "aspectRatio": "1:1",
-                                "gravity": "center"
-                            }
-                        ],
-                        "flex": 1
-                    }
-                ]
+                "type": "image",
+                "url": "link",
+                "size": "full",
+                "aspectMode": "cover",
+                "aspectRatio": "2:1",
+                "gravity": "center"
             }
         ],
         "paddingAll": "0px"
@@ -33,39 +20,29 @@
         "layout": "vertical",
         "contents": [
             {
-                "type": "box",
-                "layout": "vertical",
-                "contents": [
-                    {
-                        "type": "box",
-                        "layout": "vertical",
-                        "contents": [
-                            {
-                                "type": "text",
-                                "text": "output",
-                                "color": "#ffffffcc",
-                                "size": "sm",
-                                "wrap": true
-                            },
-                            {
-                                "type": "button",
-                                "flex": 2,
-                                "style": "primary",
-                                "color": "#1E90FF",
-                                "action": {
-                                    "type": "uri",
-                                    "label": "Azure",
-                                    "uri": "https://docs.microsoft.com/zh-tw/azure/?product=all"
-                                }
-                            }
-                        ],
-                        "spacing": "sm"
-                    }
-                ],
-                "height": "50px"
+                "type": "text",
+                "text": "output",
+                "color": "#ffffffcc",
+                "size": "sm",
+                "wrap": true,
+                "margin": "none"
+            },
+            {
+                "type": "button",
+                "flex": 2,
+                "style": "primary",
+                "color": "#1E90FF",
+                "action": {
+                    "type": "uri",
+                    "label": "Azure",
+                    "uri": "https://docs.microsoft.com/zh-tw/azure/?product=all"
+                },
+                "height": "sm"
             }
         ],
         "paddingAll": "20px",
-        "backgroundColor": "#464F69"
+        "backgroundColor": "#464F69",
+        "height": "120px",
+        "spacing": "md"
     }
 }
