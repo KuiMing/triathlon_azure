@@ -216,7 +216,7 @@ def azure_face_recognition(filename):
     person = FACE_CLIENT.person_group_person.get(
         PERSON_GROUP_ID, result["candidates"][0]["person_id"]
     )
-    return person.name
+    return person.name, img.size
 
 
 @app.route("/callback", methods=["POST"])
@@ -244,17 +244,6 @@ def handle_message(event):
     """
     Reply text message
     """
-    # json_file = {"TIBAME": "templates/bubble.json", "HELP": "templates/carousel.json"}
-    # try:
-    #     filename = json_file[event.message.text.upper()]
-    #     with open(filename, "r") as f_r:
-    #         bubble = json.load(f_r)
-    #     f_r.close()
-    #     LINE_BOT.reply_message(
-    #         event.reply_token,
-    #         [FlexSendMessage(alt_text="Information", contents=bubble)],
-    #     )
-    #     except:
     if event.message.text == "currency":
         recent = investpy.get_currency_cross_recent_data("USD/TWD")
         message = TextSendMessage(text=recent.Close.values[-1])
@@ -291,17 +280,14 @@ def handle_content_message(event):
             f_w.write(chunk)
     f_w.close()
     link = upload_blob(CONTAINER, filename)
-    name = azure_face_recognition(filename)
+    name, size = azure_face_recognition(filename)
     output = ""
     if name != "":
         now = datetime.now(timezone(timedelta(hours=8))).strftime("%Y-%m-%d %H:%M")
         output = "{0}, {1}".format(name, now)
     else:
-        # plate = azure_ocr(link)
         text = azure_ocr(link)
         link_ob, size = azure_object_detection(link, filename)
-        # if len(plate) > 0:
-        #     output = "License Plate: {}".format(plate)
         if len(text) > 0:
             output, speech_button = azure_translation(" ".join(text), event.message.id)
             bubble["body"]["contents"].append(speech_button)
