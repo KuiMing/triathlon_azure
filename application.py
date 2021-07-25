@@ -216,6 +216,7 @@ def azure_face_recognition(filename):
     person = FACE_CLIENT.person_group_person.get(
         PERSON_GROUP_ID, result["candidates"][0]["person_id"]
     )
+    img = Image.open(filename)
     return person.name, img.size
 
 
