@@ -10,6 +10,11 @@ from azure.cognitiveservices.vision.computervision import ComputerVisionClient
 from azure.cognitiveservices.vision.computervision.models import OperationStatusCodes
 from azure.cognitiveservices.vision.face import FaceClient
 from azure.storage.blob import BlobServiceClient
+from azure.cognitiveservices.speech import (
+    SpeechConfig,
+    SpeechSynthesizer,
+)
+from azure.cognitiveservices.speech.audio import AudioOutputConfig
 
 from msrest.authentication import CognitiveServicesCredentials
 from linebot import LineBotApi, WebhookHandler
@@ -45,16 +50,15 @@ ML_URL = CONFIG["azure"]["azureml_endpoint"]
 
 CONNECT_STR = CONFIG["azure"]["blob_connect"]
 CONTAINER = CONFIG["azure"]["blob_container"]
+BLOB_SERVICE = BlobServiceClient.from_connection_string(CONNECT_STR)
 
 TRANS_KEY = CONFIG["azure"]["trans_key"]
+SPEECH_KEY = CONFIG["azure"]["speech_key"]
 
 LINE_SECRET = CONFIG["line"]["line_secret"]
 LINE_TOKEN = CONFIG["line"]["line_token"]
 LINE_BOT = LineBotApi(LINE_TOKEN)
 HANDLER = WebhookHandler(LINE_SECRET)
-
-
-BLOB_SERVICE = BlobServiceClient.from_connection_string(CONNECT_STR)
 
 
 @app.route("/")
@@ -112,7 +116,28 @@ def azure_ocr(url):
     return text
 
 
-def azure_translation(string):
+def azure_speech(string, message_id):
+    speech_config = SpeechConfig(subscription=SPEECH_KEY, region="eastus2")
+    speech_config.speech_synthesis_language = "ko-KR"
+    audio_config = AudioOutputConfig(filename="{}.wav".format(message_id))
+
+    synthesizer = SpeechSynthesizer(
+        speech_config=speech_config, audio_config=audio_config
+    )
+    synthesizer.speak_text_async(string)
+    link = upload_blob(CONTAINER, "{}.wav".format(message_id))
+    output = {
+        "type": "button",
+        "flex": 2,
+        "style": "primary",
+        "color": "#1E90FF",
+        "action": {"type": "uri", "label": "Azure", "uri": link},
+        "height": "sm",
+    }
+    return output
+
+
+def azure_translation(string, message_id):
     trans_url = "https://api.cognitive.microsofttranslator.com/translate"
 
     params = {"api-version": "2.0", "to": ["zh-Hant"]}
@@ -128,11 +153,16 @@ def azure_translation(string):
 
     req = requests.post(trans_url, params=params, headers=headers, json=body)
     response = req.json()
+    output = ""
+    speech_button = ""
     ans = []
     for i in response:
         ans.append(i["translations"][0]["text"])
     language = response[0]["detectedLanguage"]["language"]
-    return ans, language
+    if language == "ko":
+        output = " ".join(string) + "\n" + " ".join(ans)
+        speech_button = azure_speech(string, message_id)
+    return output, speech_button
 
 
 def azure_object_detection(url, filename):
@@ -250,6 +280,10 @@ def handle_content_message(event):
     print(event.message)
     print(event.source.user_id)
     print(event.message.id)
+
+    with open("templates/detect_result.json", "r") as f_r:
+        bubble = json.load(f_r)
+    f_r.close()
     filename = "{}.jpg".format(event.message.id)
     message_content = LINE_BOT.get_message_content(event.message.id)
     with open(filename, "wb") as f_w:
@@ -261,7 +295,6 @@ def handle_content_message(event):
     link = upload_blob(CONTAINER, filename)
     # name = azure_face_recognition(filename)
     name = ""
-    output = ""
     if name != "":
         now = datetime.now(timezone(timedelta(hours=8))).strftime("%Y-%m-%d %H:%M")
         output = "{0}, {1}".format(name, now)
@@ -272,16 +305,12 @@ def handle_content_message(event):
         # if len(plate) > 0:
         #     output = "License Plate: {}".format(plate)
         if len(text) > 0:
-            translation, language = azure_translation(" ".join(text))
-        if language == "ko":
-            output = " ".join(text) + "\n" + " ".join(translation)
+            output, speech_button = azure_translation(" ".join(text), event.message.id)
+            bubble["body"]["contents"].append(speech_button)
         if output == "":
             output = azure_describe(link)
         link = link_ob
 
-    with open("templates/detect_result.json", "r") as f_r:
-        bubble = json.load(f_r)
-    f_r.close()
     bubble["body"]["contents"][0]["text"] = output
     bubble["header"]["contents"][0]["url"] = link
     bubble["header"]["contents"][0]["aspectRatio"] = "{}:{}".format(size[0], size[1])
