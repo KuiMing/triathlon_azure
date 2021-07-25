@@ -115,7 +115,7 @@ def azure_ocr(url):
 def azure_translation(string):
     trans_url = "https://api.cognitive.microsofttranslator.com/translate"
 
-    params = {"api-version": "2.0", "from": "ko", "to": ["zh-Hant"]}
+    params = {"api-version": "2.0", "to": ["zh-Hant"]}
 
     headers = {
         "Ocp-Apim-Subscription-Key": TRANS_KEY,
@@ -131,7 +131,8 @@ def azure_translation(string):
     ans = []
     for i in response:
         ans.append(i["translations"][0]["text"])
-    return ans
+    language = response[0]["detectedLanguage"]["language"]
+    return ans, language
 
 
 def azure_object_detection(url, filename):
@@ -260,6 +261,7 @@ def handle_content_message(event):
     link = upload_blob(CONTAINER, filename)
     # name = azure_face_recognition(filename)
     name = ""
+    output = ""
     if name != "":
         now = datetime.now(timezone(timedelta(hours=8))).strftime("%Y-%m-%d %H:%M")
         output = "{0}, {1}".format(name, now)
@@ -270,9 +272,10 @@ def handle_content_message(event):
         # if len(plate) > 0:
         #     output = "License Plate: {}".format(plate)
         if len(text) > 0:
-            translation = azure_translation(" ".join(text))
+            translation, language = azure_translation(" ".join(text))
+        if language == "ko":
             output = " ".join(text) + "\n" + " ".join(translation)
-        else:
+        if output == "":
             output = azure_describe(link)
         link = link_ob
 
