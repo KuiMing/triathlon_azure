@@ -6,3 +6,4 @@ Pillow
 azure-cognitiveservices-vision-face
 investpy
 azure-storage-blob
+azure-cognitiveservices-speech
