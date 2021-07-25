@@ -26,18 +26,6 @@
                 "size": "sm",
                 "wrap": true,
                 "margin": "none"
-            },
-            {
-                "type": "button",
-                "flex": 2,
-                "style": "primary",
-                "color": "#1E90FF",
-                "action": {
-                    "type": "uri",
-                    "label": "Azure",
-                    "uri": "https://docs.microsoft.com/zh-tw/azure/?product=all"
-                },
-                "height": "sm"
             }
         ],
         "paddingAll": "20px",
