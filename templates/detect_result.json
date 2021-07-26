@@ -30,7 +30,7 @@
         ],
         "paddingAll": "20px",
         "backgroundColor": "#464F69",
-        "height": "150px",
+        "height": "75px",
         "spacing": "md"
     }
 }

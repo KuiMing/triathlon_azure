@@ -312,15 +312,15 @@ def handle_content_message(event):
     print(event.source.user_id)
     print(event.message.id)
 
-    with open("templates/detect_result.json", "r") as f_r:
-        bubble = json.load(f_r)
-    f_r.close()
+    with open("templates/detect_result.json", "r") as f_h:
+        bubble = json.load(f_h)
+    f_h.close()
     filename = "{}.jpg".format(event.message.id)
     message_content = LINE_BOT.get_message_content(event.message.id)
-    with open(filename, "wb") as f_w:
+    with open(filename, "wb") as f_h:
         for chunk in message_content.iter_content():
-            f_w.write(chunk)
-    f_w.close()
+            f_h.write(chunk)
+    f_h.close()
     img = resize_image(filename)
     # img = Image.open(filename)
     link = upload_blob(CONTAINER, filename)
@@ -335,6 +335,7 @@ def handle_content_message(event):
         if len(text) > 0:
             output, speech_button = azure_translation(" ".join(text), event.message.id)
             bubble["body"]["contents"].append(speech_button)
+            bubble["body"]["height"] = "{}px".format(150)
         if output == "":
             link_ob = azure_object_detection(link, filename)
             output = azure_describe(link)
@@ -345,6 +346,7 @@ def handle_content_message(event):
     bubble["header"]["contents"][0]["aspectRatio"] = "{}:{}".format(
         img.size[0], img.size[1]
     )
+
     LINE_BOT.reply_message(
         event.reply_token, [FlexSendMessage(alt_text="Report", contents=bubble)]
     )
