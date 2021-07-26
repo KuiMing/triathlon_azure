@@ -320,7 +320,8 @@ def handle_content_message(event):
             output, speech_button = azure_translation(" ".join(text), event.message.id)
             bubble["body"]["contents"].append(speech_button)
         if output == "":
-            LINE_BOT.reply_message(event.reply_token, "wait")
+            message = TextSendMessage(text="wait")
+            LINE_BOT.reply_message(event.reply_token, message)
             link_ob = azure_object_detection(link, filename)
             output = azure_describe(link)
             link = link_ob
