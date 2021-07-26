@@ -274,7 +274,7 @@ def handle_message(event):
     if event.message.text == "currency":
         recent = investpy.get_currency_cross_recent_data("USD/TWD")
         message = TextSendMessage(text=recent.Close.values[-1])
-    elif event.message.text == "prediction" & is_login(event.source.user_id):
+    elif (event.message.text == "prediction") and is_login(event.source.user_id):
         recent = investpy.get_currency_cross_recent_data("USD/TWD")
         data = {"data": ""}
         input_data = json.dumps(data)
