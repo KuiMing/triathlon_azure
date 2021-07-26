@@ -320,8 +320,8 @@ def handle_content_message(event):
     # img = resize_image(filename)
     img = Image.open(filename)
     link = upload_blob(CONTAINER, filename)
-    # name = azure_face_recognition(filename)
-    name = ""
+    name = azure_face_recognition(filename)
+    # name = ""
     output = ""
     if name != "":
         now = datetime.now(timezone(timedelta(hours=8))).strftime("%Y-%m-%d %H:%M")
