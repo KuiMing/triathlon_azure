@@ -7,3 +7,4 @@ azure-storage-blob
 Pillow
 investpy
 pymongo
+langdetect
