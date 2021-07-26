@@ -175,7 +175,6 @@ def azure_translation(string, message_id):
         "Ocp-Apim-Subscription-Region": "eastus2",
     }
 
-    # You can pass more than one object in body.
     body = [{"text": string}]
 
     req = requests.post(trans_url, params=params, headers=headers, json=body)
@@ -215,8 +214,6 @@ def azure_object_detection(url, filename):
                 font=fnt,
             )
     img.save(filename)
-    # image = IMGUR_CLIENT.image_upload(filename, "", "")
-    # link = image["response"]["data"]["link"]
     link = upload_blob(CONTAINER, filename)
     os.remove(filename)
     return link
@@ -289,9 +286,13 @@ def handle_message(event):
 
 
 def resize_image(filename):
-    width = 700
+    """
+    Resize image: fix the max aspect
+    """
+    base = 700
     img = Image.open(filename)
-    ratio = width / float(img.size[0])
+    ratio = base / float(max(img.size))
+    width = int((float(img.size[0]) * float(ratio)))
     height = int((float(img.size[1]) * float(ratio)))
     img = img.resize((width, height), Image.ANTIALIAS)
     img.save(filename)
@@ -330,21 +331,9 @@ def handle_content_message(event):
             output, speech_button = azure_translation(" ".join(text), event.message.id)
             bubble["body"]["contents"].append(speech_button)
         if output == "":
-            # message = TextSendMessage(text="wait")
-            # user_id = event.source.user_id
-            # LINE_BOT.reply_message(event.reply_token, message)
             link_ob = azure_object_detection(link, filename)
             output = azure_describe(link)
             link = link_ob
-            # bubble["body"]["contents"][0]["text"] = output
-            # bubble["header"]["contents"][0]["url"] = link
-            # bubble["header"]["contents"][0]["aspectRatio"] = "{}:{}".format(
-            #     img.size[0], img.size[1]
-            # )
-            # LINE_BOT.push_message(
-            #     user_id,
-            #     [FlexSendMessage(alt_text="Report", contents=bubble)],
-            # )
 
     bubble["body"]["contents"][0]["text"] = output
     bubble["header"]["contents"][0]["url"] = link
