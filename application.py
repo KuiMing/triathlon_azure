@@ -72,11 +72,19 @@ def hello():
     return "Hello World!!!!!"
 
 
-def face_login(user_id):
-    collect_login = DB["daily_login"]
-    now = datetime.now()
-    post = {"userId": user_id, "time": now.timestamp()}
-    collect_login.insert_one(post)
+def check_registered(name):
+    collect_register = DB["line"]
+    return collect_register.find_one({"name": name})
+
+
+def face_login(name, user_id):
+    result = check_registered(name)
+    if result:
+        if result["userId"] == user_id:
+            collect_login = DB["daily_login"]
+            now = datetime.now()
+            post = {"userId": user_id, "time": now.timestamp()}
+            collect_login.insert_one(post)
 
 
 def is_login(user_id):
@@ -87,11 +95,6 @@ def is_login(user_id):
     )
 
     return result > 0
-
-
-def check_registered(name):
-    collect_register = DB["line"]
-    return collect_register.find_one({"name": name})
 
 
 def upload_blob(container, path):
@@ -313,10 +316,7 @@ def handle_content_message(event):
     if name != "":
         now = datetime.now(timezone(timedelta(hours=8))).strftime("%Y-%m-%d %H:%M")
         output = "{0}, {1}".format(name, now)
-        result = check_registered(name)
-        if result:
-            if result["userId"] == event.source.user_id:
-                face_login(event.source.user_id)
+        face_login(name, event.source.user_id)
 
     else:
         text = azure_ocr(link)
