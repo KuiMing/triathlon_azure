@@ -328,10 +328,10 @@ def handle_content_message(event):
         output = "{0}, {1}".format(name, now)
         face_login(name, event.source.user_id)
     else:
-        text = azure_ocr(link)
-        if len(text) > 0:
-            output, speech_button = azure_translation(" ".join(text), event.message.id)
-            bubble["body"]["contents"].append(speech_button)
+        # text = azure_ocr(link)
+        # if len(text) > 0:
+        #     output, speech_button = azure_translation(" ".join(text), event.message.id)
+        #     bubble["body"]["contents"].append(speech_button)
         if output == "":
             link_ob = azure_object_detection(link, filename)
             output = azure_describe(link)
