@@ -342,8 +342,8 @@ def handle_content_message(event):
         for chunk in message_content.iter_content():
             f_h.write(chunk)
     f_h.close()
-    img = resize_image(filename)
-    # img = Image.open(filename)
+    # img = resize_image(filename)
+    img = Image.open(filename)
     link = upload_blob(CONTAINER, filename)
     name = azure_face_recognition(filename)
     output = ""
