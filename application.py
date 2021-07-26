@@ -74,11 +74,17 @@ def hello():
 
 
 def check_registered(name):
+    """
+    Check if a specific name is in the database
+    """
     collect_register = DB["line"]
     return collect_register.find_one({"name": name})
 
 
 def face_login(name, user_id):
+    """
+    Insert face recognition result to MongoDB
+    """
     result = check_registered(name)
     if result:
         if result["userId"] == user_id:
@@ -89,6 +95,9 @@ def face_login(name, user_id):
 
 
 def is_login(user_id):
+    """
+    Check login status from MongoDB
+    """
     collect_login = DB["daily_login"]
     yesterday = datetime.now() - timedelta(days=1)
     result = collect_login.count_documents(
@@ -99,6 +108,9 @@ def is_login(user_id):
 
 
 def upload_blob(container, path):
+    """
+    Upload files to Azure blob
+    """
     blob_client = BLOB_SERVICE.get_blob_client(container=container, blob=path)
     with open(path, "rb") as data:
         blob_client.upload_blob(data, overwrite=True)
@@ -148,6 +160,9 @@ def azure_ocr(url):
 
 
 def azure_speech(string, message_id):
+    """
+    Azure speech: text to speech, and save wav file to azure blob
+    """
     speech_config = SpeechConfig(subscription=SPEECH_KEY, region="eastus2")
     speech_config.speech_synthesis_language = "ko-KR"
     audio_config = AudioOutputConfig(filename="{}.wav".format(message_id))
@@ -169,6 +184,9 @@ def azure_speech(string, message_id):
 
 
 def azure_translation(string, message_id):
+    """
+    Translation with azure API
+    """
     trans_url = "https://api.cognitive.microsofttranslator.com/translate"
 
     params = {"api-version": "2.0", "to": ["zh-Hant"]}
@@ -196,6 +214,9 @@ def azure_translation(string, message_id):
 
 
 def azure_object_detection(url, filename):
+    """
+    Azure object detection, and output images with bounding boxes
+    """
     img = Image.open(filename)
     draw = ImageDraw.Draw(img)
     font_size = int(5e-2 * img.size[1])
