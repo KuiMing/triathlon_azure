@@ -320,9 +320,19 @@ def handle_content_message(event):
             output, speech_button = azure_translation(" ".join(text), event.message.id)
             bubble["body"]["contents"].append(speech_button)
         if output == "":
+            LINE_BOT.reply_message(event.reply_token, "wait")
             link_ob = azure_object_detection(link, filename)
             output = azure_describe(link)
             link = link_ob
+            bubble["body"]["contents"][0]["text"] = output
+            bubble["header"]["contents"][0]["url"] = link
+            bubble["header"]["contents"][0]["aspectRatio"] = "{}:{}".format(
+                img.size[0], img.size[1]
+            )
+            LINE_BOT.push_message(
+                event.source.user_id,
+                [FlexSendMessage(alt_text="Report", contents=bubble)],
+            )
 
     bubble["body"]["contents"][0]["text"] = output
     bubble["header"]["contents"][0]["url"] = link
