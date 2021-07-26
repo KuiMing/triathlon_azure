@@ -318,7 +318,7 @@ def handle_content_message(event):
             f_w.write(chunk)
     f_w.close()
     # img = resize_image(filename)
-    img = Image.read(filename)
+    img = Image.open(filename)
     link = upload_blob(CONTAINER, filename)
     name = azure_face_recognition(filename)
     output = ""
