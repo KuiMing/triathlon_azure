@@ -30,6 +30,7 @@ from linebot.models import (
 from pymongo import MongoClient
 from PIL import Image, ImageDraw, ImageFont
 import investpy
+from langdetect import detect
 
 app = Flask(__name__)
 
@@ -140,7 +141,10 @@ def azure_ocr(url):
         for text_result in get_handw_text_results.analyze_result.read_results:
             for line in text_result.lines:
                 text.append(line.text)
-    return text
+    lan = detect(text[0])
+    if lan == "ko":
+        return text
+    return []
 
 
 def azure_speech(string, message_id):
@@ -321,17 +325,16 @@ def handle_content_message(event):
     img = Image.open(filename)
     link = upload_blob(CONTAINER, filename)
     name = azure_face_recognition(filename)
-    # name = ""
     output = ""
     if name != "":
         now = datetime.now(timezone(timedelta(hours=8))).strftime("%Y-%m-%d %H:%M")
         output = "{0}, {1}".format(name, now)
         face_login(name, event.source.user_id)
     else:
-        # text = azure_ocr(link)
-        # if len(text) > 0:
-        #     output, speech_button = azure_translation(" ".join(text), event.message.id)
-        #     bubble["body"]["contents"].append(speech_button)
+        text = azure_ocr(link)
+        if len(text) > 0:
+            output, speech_button = azure_translation(" ".join(text), event.message.id)
+            bubble["body"]["contents"].append(speech_button)
         if output == "":
             link_ob = azure_object_detection(link, filename)
             output = azure_describe(link)
