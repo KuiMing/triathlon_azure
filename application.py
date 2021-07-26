@@ -140,9 +140,6 @@ def azure_ocr(url):
         for text_result in get_handw_text_results.analyze_result.read_results:
             for line in text_result.lines:
                 text.append(line.text)
-    # Filter text for Taiwan license plate
-    # r = re.compile("[0-9A-Z]{2,4}[.-]{1}[0-9A-Z]{2,4}")
-    # text = list(filter(r.match, text))
     return text
 
 
@@ -222,7 +219,7 @@ def azure_object_detection(url, filename):
     # link = image["response"]["data"]["link"]
     link = upload_blob(CONTAINER, filename)
     os.remove(filename)
-    return link, img.size
+    return link
 
 
 def azure_face_recognition(filename):
@@ -246,8 +243,7 @@ def azure_face_recognition(filename):
     person = FACE_CLIENT.person_group_person.get(
         PERSON_GROUP_ID, result["candidates"][0]["person_id"]
     )
-    img = Image.open(filename)
-    return person.name, img.size
+    return person.name
 
 
 @app.route("/callback", methods=["POST"])
@@ -310,27 +306,29 @@ def handle_content_message(event):
         for chunk in message_content.iter_content():
             f_w.write(chunk)
     f_w.close()
+    img = Image.open(filename)
     link = upload_blob(CONTAINER, filename)
-    name, size = azure_face_recognition(filename)
+    name = azure_face_recognition(filename)
     output = ""
     if name != "":
         now = datetime.now(timezone(timedelta(hours=8))).strftime("%Y-%m-%d %H:%M")
         output = "{0}, {1}".format(name, now)
         face_login(name, event.source.user_id)
-
     else:
         text = azure_ocr(link)
-        link_ob, size = azure_object_detection(link, filename)
         if len(text) > 0:
             output, speech_button = azure_translation(" ".join(text), event.message.id)
             bubble["body"]["contents"].append(speech_button)
         if output == "":
+            link_ob = azure_object_detection(link, filename)
             output = azure_describe(link)
-        link = link_ob
+            link = link_ob
 
     bubble["body"]["contents"][0]["text"] = output
     bubble["header"]["contents"][0]["url"] = link
-    bubble["header"]["contents"][0]["aspectRatio"] = "{}:{}".format(size[0], size[1])
+    bubble["header"]["contents"][0]["aspectRatio"] = "{}:{}".format(
+        img.size[0], img.size[1]
+    )
     LINE_BOT.reply_message(
         event.reply_token, [FlexSendMessage(alt_text="Report", contents=bubble)]
     )
