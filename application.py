@@ -321,6 +321,7 @@ def handle_content_message(event):
             bubble["body"]["contents"].append(speech_button)
         if output == "":
             message = TextSendMessage(text="wait")
+            user_id = event.source.user_id
             LINE_BOT.reply_message(event.reply_token, message)
             link_ob = azure_object_detection(link, filename)
             output = azure_describe(link)
@@ -331,7 +332,7 @@ def handle_content_message(event):
                 img.size[0], img.size[1]
             )
             LINE_BOT.push_message(
-                event.source.user_id,
+                user_id,
                 [FlexSendMessage(alt_text="Report", contents=bubble)],
             )
 
