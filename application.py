@@ -288,6 +288,16 @@ def handle_message(event):
     LINE_BOT.reply_message(event.reply_token, message)
 
 
+def resize_image(filename):
+    width = 700
+    img = Image.open(filename)
+    ratio = width / float(img.size[0])
+    height = int((float(img.size[1]) * float(ratio)))
+    img = img.resize((width, height), Image.ANTIALIAS)
+    img.save(filename)
+    return img
+
+
 @HANDLER.add(MessageEvent, message=ImageMessage)
 def handle_content_message(event):
     """
@@ -306,7 +316,7 @@ def handle_content_message(event):
         for chunk in message_content.iter_content():
             f_w.write(chunk)
     f_w.close()
-    img = Image.open(filename)
+    img = resize_image(filename)
     link = upload_blob(CONTAINER, filename)
     name = azure_face_recognition(filename)
     output = ""
@@ -320,21 +330,21 @@ def handle_content_message(event):
             output, speech_button = azure_translation(" ".join(text), event.message.id)
             bubble["body"]["contents"].append(speech_button)
         if output == "":
-            message = TextSendMessage(text="wait")
-            user_id = event.source.user_id
-            LINE_BOT.reply_message(event.reply_token, message)
+            # message = TextSendMessage(text="wait")
+            # user_id = event.source.user_id
+            # LINE_BOT.reply_message(event.reply_token, message)
             link_ob = azure_object_detection(link, filename)
             output = azure_describe(link)
             link = link_ob
-            bubble["body"]["contents"][0]["text"] = output
-            bubble["header"]["contents"][0]["url"] = link
-            bubble["header"]["contents"][0]["aspectRatio"] = "{}:{}".format(
-                img.size[0], img.size[1]
-            )
-            LINE_BOT.push_message(
-                user_id,
-                [FlexSendMessage(alt_text="Report", contents=bubble)],
-            )
+            # bubble["body"]["contents"][0]["text"] = output
+            # bubble["header"]["contents"][0]["url"] = link
+            # bubble["header"]["contents"][0]["aspectRatio"] = "{}:{}".format(
+            #     img.size[0], img.size[1]
+            # )
+            # LINE_BOT.push_message(
+            #     user_id,
+            #     [FlexSendMessage(alt_text="Report", contents=bubble)],
+            # )
 
     bubble["body"]["contents"][0]["text"] = output
     bubble["header"]["contents"][0]["url"] = link
