@@ -153,6 +153,8 @@ def azure_ocr(url):
         for text_result in get_handw_text_results.analyze_result.read_results:
             for line in text_result.lines:
                 text.append(line.text)
+    if len(text) == 0:
+        return text
     lan = detect(text[0])
     if lan == "ko":
         return text
