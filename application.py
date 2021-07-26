@@ -4,6 +4,7 @@ Object detection and image description on LINE bot
 from datetime import datetime, timezone, timedelta
 import os
 import json
+import time
 import requests
 from flask import Flask, request, abort
 from azure.cognitiveservices.vision.computervision import ComputerVisionClient
@@ -26,8 +27,8 @@ from linebot.models import (
     FlexSendMessage,
     ImageMessage,
 )
+from pymongo import MongoClient
 from PIL import Image, ImageDraw, ImageFont
-import time
 import investpy
 
 app = Flask(__name__)
@@ -45,6 +46,10 @@ FACE_KEY = CONFIG["azure"]["face_key"]
 FACE_END = CONFIG["azure"]["face_end"]
 FACE_CLIENT = FaceClient(FACE_END, CognitiveServicesCredentials(FACE_KEY))
 PERSON_GROUP_ID = "triathlon"
+
+
+MONGO = MongoClient(CONFIG["azure"]["mongo_uri"], retryWrites=False)
+DB = MONGO["face_register"]
 
 ML_URL = CONFIG["azure"]["azureml_endpoint"]
 
@@ -65,6 +70,28 @@ HANDLER = WebhookHandler(LINE_SECRET)
 def hello():
     "hello world"
     return "Hello World!!!!!"
+
+
+def face_login(user_id):
+    collect_login = DB["daily_login"]
+    now = datetime.now()
+    post = {"userId": user_id, "time": now.timestamp()}
+    collect_login.insert_one(post)
+
+
+def is_login(user_id):
+    collect_login = DB["daily_login"]
+    yesterday = datetime.now() - timedelta(days=1)
+    result = collect_login.count_documents(
+        {"$and": [{"userId": user_id}, {"time": {"$gte": yesterday.timestamp()}}]}
+    )
+
+    return result > 0
+
+
+def check_registered(name):
+    collect_register = DB["line"]
+    return collect_register.find_one({"name": name})
 
 
 def upload_blob(container, path):
@@ -248,7 +275,7 @@ def handle_message(event):
     if event.message.text == "currency":
         recent = investpy.get_currency_cross_recent_data("USD/TWD")
         message = TextSendMessage(text=recent.Close.values[-1])
-    elif event.message.text == "prediction":
+    elif event.message.text == "prediction" & is_login(event.source.user_id):
         recent = investpy.get_currency_cross_recent_data("USD/TWD")
         data = {"data": ""}
         input_data = json.dumps(data)
@@ -286,6 +313,11 @@ def handle_content_message(event):
     if name != "":
         now = datetime.now(timezone(timedelta(hours=8))).strftime("%Y-%m-%d %H:%M")
         output = "{0}, {1}".format(name, now)
+        result = check_registered(name)
+        if result:
+            if result["userId"] == event.source.user_id:
+                face_login(event.source.user_id)
+
     else:
         text = azure_ocr(link)
         link_ob, size = azure_object_detection(link, filename)
