@@ -307,7 +307,7 @@ def handle_message(event):
         resp = requests.post(ML_URL, input_data, headers=headers)
         message = TextSendMessage(
             text="Current currency: {}\nPrediction for Next day: {}".format(
-                recent.Close.values[-1], resp.text
+                round(recent.Close.values[-1], 2), resp.text
             )
         )
     else:
