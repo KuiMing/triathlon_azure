@@ -295,12 +295,11 @@ def handle_message(event):
     """
     Reply text message
     """
-    if event.message.text.replace(" ", "").lower() == "currency":
+    text = event.message.text.replace(" ", "").lower()
+    if text == "currency":
         recent = investpy.get_currency_cross_recent_data("USD/TWD")
         message = TextSendMessage(text=recent.Close.values[-1])
-    elif (event.message.text.replace(" ", "").lower() == "prediction") and is_login(
-        event.source.user_id
-    ):
+    elif (text == "prediction") and is_login(event.source.user_id):
         recent = investpy.get_currency_cross_recent_data("USD/TWD")
         data = {"data": ""}
         input_data = json.dumps(data)
