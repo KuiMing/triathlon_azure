@@ -295,17 +295,21 @@ def handle_message(event):
     """
     Reply text message
     """
-    if event.message.text == "currency":
+    if event.message.text.replace(" ", "").lower() == "currency":
         recent = investpy.get_currency_cross_recent_data("USD/TWD")
         message = TextSendMessage(text=recent.Close.values[-1])
-    elif (event.message.text == "prediction") and is_login(event.source.user_id):
+    elif (event.message.text.replace(" ", "").lower() == "prediction") and is_login(
+        event.source.user_id
+    ):
         recent = investpy.get_currency_cross_recent_data("USD/TWD")
         data = {"data": ""}
         input_data = json.dumps(data)
         headers = {"Content-Type": "application/json"}
         resp = requests.post(ML_URL, input_data, headers=headers)
         message = TextSendMessage(
-            text="now: {}, prediction: {}".format(recent.Close.values[-1], resp.text)
+            text="Current currency: {}\nPrediction for Next day: {}".format(
+                recent.Close.values[-1], resp.text
+            )
         )
     else:
         message = TextSendMessage(text=event.message.text)
