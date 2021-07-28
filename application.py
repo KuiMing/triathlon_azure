@@ -335,6 +335,7 @@ def handle_message(event):
         bubble.pop("header")
         bubble["body"]["contents"][0]["text"] = output
         bubble["body"]["contents"].append(speech_button)
+        bubble["body"]["height"] = "{}px".format(150)
         message = FlexSendMessage(alt_text="Report", contents=bubble)
     else:
         message = TextSendMessage(text=event.message.text)
