@@ -315,9 +315,11 @@ def handle_message(event):
         )
 
     elif detect(event.message.text) == "ko":
-        output, voice = azure_translation(event.message.text, event.message.id)
+        # output, voice = azure_translation(event.message.text, event.message.id)
         message = [
-            AudioSendMessage(original_content_url=voice["action"]["uri"]),
+            AudioSendMessage(
+                original_content_url="https://triathlonblob.blob.core.windows.net/cvimage/test.wav"
+            ),
         ]
     else:
         message = TextSendMessage(text=event.message.text)
