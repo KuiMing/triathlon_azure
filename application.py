@@ -26,7 +26,6 @@ from linebot.models import (
     TextSendMessage,
     FlexSendMessage,
     ImageMessage,
-    AudioSendMessage,
 )
 from pymongo import MongoClient
 from PIL import Image, ImageDraw, ImageFont
@@ -315,12 +314,8 @@ def handle_message(event):
         )
 
     elif detect(event.message.text) == "ko":
-        # output, voice = azure_translation(event.message.text, event.message.id)
-        message = [
-            AudioSendMessage(
-                original_content_url="https://file-examples-com.github.io/uploads/2017/11/file_example_MP3_700KB.mp3"
-            ),
-        ]
+        output, voice = azure_translation(event.message.text, event.message.id)
+        message = TextSendMessage(text="{}\n{}".format(output, voice["action"]["uri"]))
     else:
         message = TextSendMessage(text=event.message.text)
     LINE_BOT.reply_message(event.reply_token, message)
