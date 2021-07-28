@@ -168,13 +168,14 @@ def azure_speech(string, message_id):
     """
     speech_config = SpeechConfig(subscription=SPEECH_KEY, region="eastus2")
     speech_config.speech_synthesis_language = "ko-KR"
-    audio_config = AudioOutputConfig(filename="{}.wav".format(message_id))
+    file_name = "{}.wav".format(message_id)
+    audio_config = AudioOutputConfig(filename=file_name)
 
     synthesizer = SpeechSynthesizer(
         speech_config=speech_config, audio_config=audio_config
     )
     synthesizer.speak_text_async(string)
-    link = upload_blob(CONTAINER, "{}.wav".format(message_id))
+    link = upload_blob(CONTAINER, file_name)
     output = {
         "type": "button",
         "flex": 2,
@@ -183,6 +184,7 @@ def azure_speech(string, message_id):
         "action": {"type": "uri", "label": "Voice", "uri": link},
         "height": "sm",
     }
+    os.remove(file_name)
     return output
 
 
