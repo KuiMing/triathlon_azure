@@ -311,7 +311,7 @@ def handle_message(event):
             )
         )
     elif detect(event.message.text) == "ko":
-        output, voice = azure_translation(" ".join(text), event.message.id)
+        output, voice = azure_translation(event.message.text, event.message.id)
         message = TextSendMessage(text="{}\n{}".format(output, voice["action"]["uri"]))
     else:
         message = TextSendMessage(text=event.message.text)
