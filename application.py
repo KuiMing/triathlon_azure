@@ -318,7 +318,7 @@ def handle_message(event):
         # output, voice = azure_translation(event.message.text, event.message.id)
         message = [
             AudioSendMessage(
-                original_content_url="https://triathlonblob.blob.core.windows.net/cvimage/test.wav"
+                original_content_url="https://file-examples-com.github.io/uploads/2017/11/file_example_MP3_700KB.mp3"
             ),
         ]
     else:
