@@ -118,6 +118,20 @@ def upload_blob(container, path):
     return blob_client.url
 
 
+def resize_image(filename):
+    """
+    Resize image: fix the max aspect
+    """
+    base = 700
+    img = Image.open(filename)
+    ratio = base / float(max(img.size))
+    width = int((float(img.size[0]) * float(ratio)))
+    height = int((float(img.size[1]) * float(ratio)))
+    img = img.resize((width, height), Image.ANTIALIAS)
+    img.save(filename)
+    return img
+
+
 def azure_describe(url):
     """
     Output azure image description result
@@ -297,6 +311,9 @@ def handle_message(event):
     """
     Reply text message
     """
+    with open("templates/detect_result.json", "r") as f_h:
+        bubble = json.load(f_h)
+    f_h.close()
     text = event.message.text.replace(" ", "").lower()
     if text == "currency":
         recent = investpy.get_currency_cross_recent_data("USD/TWD")
@@ -314,25 +331,14 @@ def handle_message(event):
         )
 
     elif detect(event.message.text) == "ko":
-        output, voice = azure_translation(event.message.text, event.message.id)
-        message = TextSendMessage(text="{}\n{}".format(output, voice["action"]["uri"]))
+        output, speech_button = azure_translation(event.message.text, event.message.id)
+        bubble.pop("header")
+        bubble["body"]["contents"][0]["text"] = output
+        bubble["body"]["contents"].append(speech_button)
+        message = FlexSendMessage(alt_text="Report", contents=bubble)
     else:
         message = TextSendMessage(text=event.message.text)
     LINE_BOT.reply_message(event.reply_token, message)
-
-
-def resize_image(filename):
-    """
-    Resize image: fix the max aspect
-    """
-    base = 700
-    img = Image.open(filename)
-    ratio = base / float(max(img.size))
-    width = int((float(img.size[0]) * float(ratio)))
-    height = int((float(img.size[1]) * float(ratio)))
-    img = img.resize((width, height), Image.ANTIALIAS)
-    img.save(filename)
-    return img
 
 
 @HANDLER.add(MessageEvent, message=ImageMessage)
