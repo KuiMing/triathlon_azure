@@ -37,8 +37,8 @@ app = Flask(__name__)
 
 CONFIG = json.load(open("/home/config.json", "r"))
 
-SUBSCRIPTION_KEY = CONFIG["azure"]["subscription_key"]
-ENDPOINT = CONFIG["azure"]["endpoint"]
+SUBSCRIPTION_KEY = CONFIG["azure"]["cv_key"]
+ENDPOINT = CONFIG["azure"]["cv_end"]
 CV_CLIENT = ComputerVisionClient(
     ENDPOINT, CognitiveServicesCredentials(SUBSCRIPTION_KEY)
 )
