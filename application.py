@@ -60,6 +60,8 @@ BLOB_SERVICE = BlobServiceClient.from_connection_string(CONNECT_STR)
 
 TRANS_KEY = CONFIG["azure"]["trans_key"]
 SPEECH_KEY = CONFIG["azure"]["speech_key"]
+SPEECH_CONFIG = SpeechConfig(subscription=SPEECH_KEY, region="eastus2")
+SPEECH_CONFIG.speech_synthesis_language = "ko-KR"
 
 LINE_SECRET = CONFIG["line"]["line_secret"]
 LINE_TOKEN = CONFIG["line"]["line_token"]
@@ -179,13 +181,12 @@ def azure_speech(string, message_id):
     """
     Azure speech: text to speech, and save wav file to azure blob
     """
-    speech_config = SpeechConfig(subscription=SPEECH_KEY, region="eastus2")
-    speech_config.speech_synthesis_language = "ko-KR"
+
     file_name = "{}.wav".format(message_id)
     audio_config = AudioOutputConfig(filename=file_name)
 
     synthesizer = SpeechSynthesizer(
-        speech_config=speech_config, audio_config=audio_config
+        speech_config=SPEECH_CONFIG, audio_config=audio_config
     )
     synthesizer.speak_text_async(string)
     link = upload_blob(CONTAINER, file_name)
