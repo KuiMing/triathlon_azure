@@ -5,7 +5,8 @@ import pickle
 import pandas as pd
 import investpy
 from sklearn.preprocessing import MinMaxScaler
-
+from azureml.core import Run
+from azureml.core import Dataset
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -53,6 +54,11 @@ def main():
         history.to_csv(
             os.path.join(args.target_folder, "training_data.csv"), index=False
         )
+        run = Run.get_context()
+        work_space = run.experiment.workspace
+        datastore = work_space.get_default_datastore()
+        dataset = Dataset.File.from_files(path=(datastore, 'currency'))
+        dataset.register(work_space, name='currency')
 
 
 if __name__ == "__main__":
