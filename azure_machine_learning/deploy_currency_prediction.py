@@ -2,7 +2,8 @@
 Deploy model to your service
 """
 import os
-import numpy as np
+
+# import numpy as np
 from azureml.core import Model, Workspace
 from azureml.core import Run
 from azureml.core.model import InferenceConfig
@@ -24,14 +25,6 @@ def main():
         work_space = Workspace.from_config(auth=interactive_auth)
     environment = work_space.environments["train_lstm"]
     model = Model(work_space, "currency")
-    model_list = model.list(work_space, name="currency")
-    val_loss = []
-    version = []
-    for i in model_list:
-        # print(i)
-        val_loss.append(float(i.properties["val_loss"]))
-        version.append(i.version)
-    model = Model(work_space, "currency", version=version[np.argmin(val_loss)])
     service_name = "currency-service"
     inference_config = InferenceConfig(
         entry_script="predict_currency.py", environment=environment
