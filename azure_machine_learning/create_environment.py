@@ -1,5 +1,5 @@
 """
-Run the experiment for training
+Create and register the environment
 """
 import os
 from azureml.core import Workspace, Environment
@@ -8,12 +8,11 @@ from azureml.core.authentication import InteractiveLoginAuthentication
 
 def main():
     """
-    Run the experiment for training
+    Create and register the environment
     """
     interactive_auth = InteractiveLoginAuthentication(tenant_id=os.getenv("TENANT_ID"))
     work_space = Workspace.from_config(auth=interactive_auth)
 
-    # Set up the Tensoflow/Keras environment
     environment = Environment.from_pip_requirements(
         name="train_lstm", file_path="requirements.txt"
     )
