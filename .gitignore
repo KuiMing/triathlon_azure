@@ -1,3 +1,7 @@
 currency/
 *.csv
 *.pickle
+*.json
+temp*
+*.h5
+.vscode
