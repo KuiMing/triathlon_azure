@@ -1,3 +1,6 @@
+"""
+Train and register LSTM model
+"""
 import argparse
 import os
 import pickle
@@ -12,6 +15,9 @@ from keras.callbacks import TensorBoard, EarlyStopping
 
 
 def data_generator(data, data_len=240):
+    """
+    generate data for training and validation
+    """
     generator = TimeseriesGenerator(
         data=data, targets=range(data.shape[0]), length=data_len, batch_size=1, stride=1
     )
@@ -47,18 +53,27 @@ def parse_args():
     return args
 
 
-def load_best_model(work_space, model_name="currency", key="val_loss"):
+def load_best_model(work_space, model_name, x_val, y_val):
+    """
+    load the best model from registered models
+    """
     model_obj = Model(work_space, model_name)
     model_list = model_obj.list(work_space, name=model_name)
-    values = []
-    version = []
-    for i in model_list:
-        values.append(float(i.properties[key]))
-        version.append(i.version)
-    model_obj = Model(work_space, model_name, version=version[np.argmin(values)])
-    model_name = model_obj.download(exist_ok=True)
-    model = load_model(model_name)
-    return model
+    version = [i.version for i in model_list]
+    version.sort(reverse=True)
+    version = version[:5]
+    val_loss = []
+    for i in version:
+        model_obj = Model(work_space, model_name, version=i)
+        model_path = model_obj.download(exist_ok=True)
+        model = load_model(model_path)
+        val_loss.append(model.evaluate(x_val, y_val))
+    model_obj = Model(
+        work_space, model_name, version=version[val_loss.index(min(val_loss))]
+    )
+    model_path = model_obj.download(exist_ok=True)
+    model = load_model(model_path)
+    return model, min(val_loss), version[val_loss.index(min(val_loss))]
 
 
 def main():
@@ -67,7 +82,6 @@ def main():
     """
     args = parse_args()
     run = Run.get_context()
-    # Load mnist data
     usd_twd = pd.read_csv(os.path.join(args.target_folder, "training_data.csv"))
     data = usd_twd.Close.values.reshape(-1, 1)
     with open(os.path.join(args.target_folder, "scaler.pickle"), "rb") as f_h:
@@ -76,7 +90,8 @@ def main():
     data = scaler.fit_transform(data)
     data_len = 240
     x_train, y_train, x_val, y_val = data_generator(data, data_len)
-
+    loss_threshold = 1
+    version = 0
     if args.experiment:
         model = Sequential()
         model.add(LSTM(16, input_shape=(data_len, 1)))
@@ -95,7 +110,10 @@ def main():
         )
     else:
         work_space = run.experiment.workspace
-        model = load_best_model(work_space, model_name="currency", key="val_loss")
+        model, loss_threshold, version = load_best_model(
+            work_space, model_name="currency", x_val=x_val, y_val=y_val
+        )
+        origin_model = model
         print("Load Model")
         callback = EarlyStopping(
             monitor="val_loss", mode="min", min_delta=1e-8, patience=50
@@ -110,17 +128,31 @@ def main():
         validation_data=[x_val, y_val],
         callbacks=[callback],
     )
-
-    # ouput log
-    metrics = history_callback.history
-    run.log_list("train_loss", metrics["loss"][:10])
-    run.log_list("val_loss", metrics["val_loss"][:10])
-    run.log_list("start", [usd_twd.Date.values[0]])
-    run.log_list("end", [usd_twd.Date.values[-1]])
-    run.log_list("epoch", [len(history_callback.epoch)])
-
     print("Finished Training")
-    model.save("outputs/keras_lstm.h5")
+    # output log
+    metrics = history_callback.history
+    if metrics["val_loss"][-1] <= loss_threshold:
+        run.log_list("train_loss", metrics["loss"][:10])
+        run.log_list("val_loss", metrics["val_loss"][:10])
+        run.log_list("start", [usd_twd.Date.values[0]])
+        run.log_list("end", [usd_twd.Date.values[-1]])
+        run.log_list("epoch", [len(history_callback.epoch)])
+        run.log_list("last_version", [version])
+        model.save("outputs/keras_lstm.h5")
+        properties = {
+            "train_loss": metrics["loss"][-1],
+            "val_loss": metrics["val_loss"][-1],
+            "data": "USD/TWD from {0} to {1}".format(
+                usd_twd.Date.values[0], usd_twd.Date.values[-1]
+            ),
+            "epoch": len(history_callback.epoch),
+            "last_version": version,
+        }
+    else:
+        run.log_list("val_loss", [loss_threshold])
+        run.log_list("last_version", [version])
+        origin_model.save("outputs/keras_lstm.h5")
+        properties = {"val_loss": loss_threshold, "last_version": version}
     print("Saved Model")
     if args.experiment:
         with open("outputs/scaler.pickle", "wb") as f_h:
@@ -134,14 +166,7 @@ def main():
             model_path="outputs/keras_lstm.h5",
             model_framework="keras",
             model_framework_version="2.2.4",
-            properties={
-                "train_loss": metrics["loss"][-1],
-                "val_loss": metrics["val_loss"][-1],
-                "data": "USD/TWD from {0} to {1}".format(
-                    usd_twd.Date.values[0], usd_twd.Date.values[-1]
-                ),
-                "epoch": len(history_callback.epoch),
-            },
+            properties=properties,
         )
         print("Registered Model")
 
