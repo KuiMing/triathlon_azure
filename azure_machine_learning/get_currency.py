@@ -8,6 +8,7 @@ from sklearn.preprocessing import MinMaxScaler
 from azureml.core import Run
 from azureml.core import Dataset
 
+
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--history", type=bool, default=False)
@@ -32,13 +33,12 @@ def main():
         usd_twd.to_csv("currency/usd_twd.csv", index=False)
         currency_data = usd_twd.Close.values.reshape(-1, 1)
         scaler = MinMaxScaler(feature_range=(0, 1))
-        currency_data = scaler.fit_transform(currency_data)
+        scaler.fit(currency_data)
         with open("currency/scaler.pickle", "wb") as f_h:
             pickle.dump(scaler, f_h)
         f_h.close()
-        currency_data = usd_twd[
-            (usd_twd.Date >= "2010-01-01") & (usd_twd.Date < "2021-01-01")
-        ]
+        currency_data = usd_twd[(usd_twd.Date >= "2010-01-01")
+                                & (usd_twd.Date < "2021-01-01")]
         currency_data.to_csv("currency/training_data.csv")
     else:
         path = os.path.join(args.target_folder, "usd_twd.csv")
@@ -51,9 +51,8 @@ def main():
         history.drop_duplicates(subset="Date", keep="last", inplace=True)
         history.to_csv(path, index=False)
         history = history.tail(2400)
-        history.to_csv(
-            os.path.join(args.target_folder, "training_data.csv"), index=False
-        )
+        history.to_csv(os.path.join(args.target_folder, "training_data.csv"),
+                       index=False)
         run = Run.get_context()
         work_space = run.experiment.workspace
         datastore = work_space.get_default_datastore()

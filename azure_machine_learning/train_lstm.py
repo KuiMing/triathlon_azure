@@ -18,19 +18,21 @@ def data_generator(data, data_len=240):
     """
     generate data for training and validation
     """
-    generator = TimeseriesGenerator(
-        data=data, targets=range(data.shape[0]), length=data_len, batch_size=1, stride=1
-    )
+    generator = TimeseriesGenerator(data=data,
+                                    targets=range(data.shape[0]),
+                                    length=data_len,
+                                    batch_size=1,
+                                    stride=1)
     x_all = []
     for i in generator:
         x_all.append(i[0][0])
     x_all = np.array(x_all)
     y_all = data[range(data_len, len(x_all) + data_len)]
     rate = 0.4
-    x_train = x_all[: int(len(x_all) * (1 - rate))]
-    y_train = y_all[: int(y_all.shape[0] * (1 - rate))]
-    x_val = x_all[int(len(x_all) * (1 - rate)) :]
-    y_val = y_all[int(y_all.shape[0] * (1 - rate)) :]
+    x_train = x_all[:int(len(x_all) * (1 - rate))]
+    y_train = y_all[:int(y_all.shape[0] * (1 - rate))]
+    x_val = x_all[int(len(x_all) * (1 - rate)):]
+    y_val = y_all[int(y_all.shape[0] * (1 - rate)):]
     return x_train, y_train, x_val, y_val
 
 
@@ -39,16 +41,19 @@ def parse_args():
     Parse arguments
     """
     parser = argparse.ArgumentParser()
-    parser.add_argument("--target_folder", type=str, help="Path to the training data")
+    parser.add_argument("--target_folder",
+                        type=str,
+                        help="Path to the training data")
     parser.add_argument(
         "--experiment",
         type=bool,
         default=False,
         help="Just run an experiment, there is no pipeline",
     )
-    parser.add_argument(
-        "--log_folder", type=str, help="Path to the log", default="./logs"
-    )
+    parser.add_argument("--log_folder",
+                        type=str,
+                        help="Path to the log",
+                        default="./logs")
     args = parser.parse_args()
     return args
 
@@ -68,9 +73,9 @@ def load_best_model(work_space, model_name, x_val, y_val):
         model_path = model_obj.download(exist_ok=True)
         model = load_model(model_path)
         val_loss.append(model.evaluate(x_val, y_val))
-    model_obj = Model(
-        work_space, model_name, version=version[val_loss.index(min(val_loss))]
-    )
+    model_obj = Model(work_space,
+                      model_name,
+                      version=version[val_loss.index(min(val_loss))])
     model_path = model_obj.download(exist_ok=True)
     model = load_model(model_path)
     return model, min(val_loss), version[val_loss.index(min(val_loss))]
@@ -82,12 +87,13 @@ def main():
     """
     args = parse_args()
     run = Run.get_context()
-    usd_twd = pd.read_csv(os.path.join(args.target_folder, "training_data.csv"))
+    usd_twd = pd.read_csv(os.path.join(args.target_folder,
+                                       "training_data.csv"))
     data = usd_twd.Close.values.reshape(-1, 1)
     with open(os.path.join(args.target_folder, "scaler.pickle"), "rb") as f_h:
         scaler = pickle.load(f_h)
     f_h.close()
-    data = scaler.fit_transform(data)
+    data = scaler.transform(data)
     data_len = 240
     x_train, y_train, x_val, y_val = data_generator(data, data_len)
     loss_threshold = 1
@@ -110,14 +116,16 @@ def main():
         )
     else:
         work_space = run.experiment.workspace
-        model, loss_threshold, version = load_best_model(
-            work_space, model_name="currency", x_val=x_val, y_val=y_val
-        )
+        model, loss_threshold, version = load_best_model(work_space,
+                                                         model_name="currency",
+                                                         x_val=x_val,
+                                                         y_val=y_val)
         origin_model = model
         print("Load Model")
-        callback = EarlyStopping(
-            monitor="val_loss", mode="min", min_delta=1e-8, patience=50
-        )
+        callback = EarlyStopping(monitor="val_loss",
+                                 mode="min",
+                                 min_delta=1e-8,
+                                 patience=50)
     # train the network
     history_callback = model.fit(
         x_train,
@@ -140,13 +148,17 @@ def main():
         run.log_list("last_version", [version])
         model.save("outputs/keras_lstm.h5")
         properties = {
-            "train_loss": metrics["loss"][-1],
-            "val_loss": metrics["val_loss"][-1],
-            "data": "USD/TWD from {0} to {1}".format(
-                usd_twd.Date.values[0], usd_twd.Date.values[-1]
-            ),
-            "epoch": len(history_callback.epoch),
-            "last_version": version,
+            "train_loss":
+            metrics["loss"][-1],
+            "val_loss":
+            metrics["val_loss"][-1],
+            "data":
+            "USD/TWD from {0} to {1}".format(usd_twd.Date.values[0],
+                                             usd_twd.Date.values[-1]),
+            "epoch":
+            len(history_callback.epoch),
+            "last_version":
+            version,
         }
     else:
         run.log_list("val_loss", [loss_threshold])

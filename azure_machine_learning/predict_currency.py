@@ -15,7 +15,8 @@ def init():
     global model
     global scaler
 
-    for root, _, files in os.walk("/var/azureml-app/azureml-models/", topdown=False):
+    for root, _, files in os.walk("/var/azureml-app/azureml-models/",
+                                  topdown=False):
         for name in files:
             if name.split(".")[-1] == "h5":
                 model_path = os.path.join(root, name)
@@ -40,7 +41,7 @@ def run(raw_data):
     )
     data.reset_index(inplace=True)
     data = data.tail(240).Close.values.reshape(-1, 1)
-    data = scaler.fit_transform(data)
+    data = scaler.transform(data)
     data = data.reshape((1, 240, 1))
     # make prediction
     ans = model.predict(data)
