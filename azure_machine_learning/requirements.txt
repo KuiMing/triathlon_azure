@@ -4,5 +4,6 @@ pandas
 tensorflow==1.13.1
 Keras==2.2.4
 azureml-defaults
+azureml-model-management-sdk
 investpy
 h5py==2.10.0
